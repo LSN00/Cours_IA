@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Intelligence artificielle UE3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : une colonne de lecture (~760px), barre de chapitres collante, "labos" interactifs en cartes pleine largeur.
+   Les surligneurs rose / vert / jaune reprennent le code couleur du poly. */
+:root{
+  --bg:#f2f5f6; --surface:#ffffff; --sunk:#e7edef; --ink:#13212a; --muted:#56676f; --line:#d3dde2;
+  --accent:#0b7285; --accent-ink:#ffffff; --accent-soft:#d4eef2;
+  --boy:#3b5bdb; --girl:#d6336c; --blue:#1c7ed6; --green:#2b8a3e; --warn:#c2410c;
+  --hl-p:#ffd3e4; --hl-g:#d0f5c9; --hl-y:#fff2a0;
+  --f-display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1519; --surface:#152027; --sunk:#1c2a32; --ink:#e3ebee; --muted:#93a5ae; --line:#2a3943;
+  --accent:#4cc3d3; --accent-ink:#06222a; --accent-soft:#163b44;
+  --boy:#8197ff; --girl:#f06595; --blue:#4dabf7; --green:#5ad46e; --warn:#ff9a3c;
+  --hl-p:rgba(240,101,149,.30); --hl-g:rgba(90,212,110,.24); --hl-y:rgba(255,224,102,.24);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1519; --surface:#152027; --sunk:#1c2a32; --ink:#e3ebee; --muted:#93a5ae; --line:#2a3943;
+  --accent:#4cc3d3; --accent-ink:#06222a; --accent-soft:#163b44;
+  --boy:#8197ff; --girl:#f06595; --blue:#4dabf7; --green:#5ad46e; --warn:#ff9a3c;
+  --hl-p:rgba(240,101,149,.30); --hl-g:rgba(90,212,110,.24); --hl-y:rgba(255,224,102,.24);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16.5px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+.hero{padding-block:30px 14px}
+.kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,8.5vw,58px);line-height:1;letter-spacing:-.02em;margin:.3em 0 .35em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{color:var(--muted);max-width:62ch;margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:14px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:16px;font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--ink)}
+nav.chap{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav.chap .wrap{display:flex;gap:6px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+nav.chap .wrap::-webkit-scrollbar{display:none}
+.chip{flex:none;font-family:var(--f-mono);font-size:12.5px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;color:var(--ink);text-decoration:none;background:var(--surface)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.prog{height:2px;background:var(--accent);width:0;transition:width .15s}
+section{padding-block:34px 6px;scroll-margin-top:58px}
+.sec-head{display:flex;align-items:baseline;gap:12px;border-top:2px solid var(--ink);padding-top:12px}
+.letter{font-family:var(--f-display);font-weight:800;font-size:46px;line-height:1;color:var(--accent);min-width:1.1ch}
+h2{font-family:var(--f-display);font-weight:800;font-size:clamp(25px,6vw,34px);margin:0;line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;line-height:1.2;margin:1.7em 0 .3em;text-wrap:balance}
+h3 .n{font-family:var(--f-mono);font-size:14px;color:var(--muted);margin-right:6px}
+p{margin:.65em 0}
+ul{padding-left:1.2em;margin:.6em 0}
+li{margin:.25em 0}
+mark{color:inherit;padding:0 .18em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+mark.p{background:var(--hl-p)} mark.g{background:var(--hl-g)} mark.y{background:var(--hl-y)}
+.formula{font-family:var(--f-mono);background:var(--sunk);border-radius:10px;padding:12px 14px;margin:14px 0;overflow-x:auto;text-align:center;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.formula small{display:block;font-family:var(--f-body);color:var(--muted);font-size:12.5px;white-space:normal;margin-top:4px}
+sub,sup{font-size:.7em;line-height:0}
+.box{border-radius:12px;padding:12px 14px;margin:16px 0;font-size:15.5px}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.tag{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;display:block;margin-bottom:4px}
+.retenir{background:var(--accent-soft)} .retenir .tag{color:var(--accent)}
+.piege{border:1.5px dashed var(--warn);background:var(--surface)} .piege .tag{color:var(--warn)}
+.note{background:var(--sunk)} .note .tag{color:var(--muted)}
+.clair{border:1px solid var(--line);background:var(--surface)} .clair .tag{color:var(--girl)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin:22px 0;overflow:hidden}
+.lab-head{padding:12px 14px 4px;display:flex;justify-content:space-between;gap:4px 10px;align-items:baseline;flex-wrap:wrap}
+.lab-head b{font-family:var(--f-display);font-weight:600;font-size:17px}
+.lab-head span{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.lab .hint{padding:0 14px;margin:0 0 6px;font-size:14px;color:var(--muted)}
+.cvw{width:100%;position:relative}
+.cvw canvas{display:block;width:100%;touch-action:manipulation}
+.lab .body{padding:6px 14px 14px}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 18px;margin-top:6px}
+.ctrl label{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctrl output{font-family:var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);margin:4px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button.b{font:700 14px var(--f-body);padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.b[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin-top:12px}
+.read{background:var(--sunk);border-radius:10px;padding:8px 10px;min-width:0}
+.read small{display:block;font-size:12.5px;color:var(--muted);line-height:1.3}
+.read b{font-family:var(--f-mono);font-size:17px;font-variant-numeric:tabular-nums}
+.msg{margin-top:10px;font-size:14.5px;min-height:1.6em}
+.leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13.5px;color:var(--muted);padding:6px 14px 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;transform:rotate(45deg)}
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;min-width:0}
+.card h4{font-family:var(--f-display);font-weight:600;font-size:18px;margin:2px 0 6px}
+.card .q{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card p{margin:.3em 0}
+.card .ex{border-top:1px solid var(--line);margin-top:8px;padding-top:6px;font-size:14px}
+.timeline{list-style:none;padding:0;margin:14px 0;border-left:2px solid var(--line)}
+.timeline li{position:relative;padding:0 0 14px 16px}
+.timeline li::before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.timeline .y{font-family:var(--f-mono);font-size:12.5px;color:var(--accent);font-weight:600;display:block}
+.neuron{width:100%;max-width:560px;display:block;margin:0 auto}
+.neuron .wire{stroke:var(--line);stroke-width:2;fill:none}
+.neuron .flowl{stroke:var(--accent);stroke-width:2;fill:none;stroke-dasharray:3 9;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+.neuron text{fill:var(--ink);font-family:var(--f-mono);font-size:12px}
+.neuron .mut{fill:var(--muted);font-size:10.5px}
+.neuron .in{fill:var(--surface);stroke:var(--warn);stroke-width:1.5}
+.neuron .bias{fill:var(--sunk);stroke:var(--muted);stroke-width:1.5;stroke-dasharray:3 2}
+.neuron .core{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.neuron .act{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.neuron .step{stroke:var(--accent);stroke-width:2.5;fill:none}
+.neuron .arr{fill:var(--ink)}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:stretch;font-size:13.5px;max-width:440px}
+.cm .h{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px}
+.cm .cell{border-radius:10px;padding:8px;text-align:center}
+.cm .cell label{display:block;font-weight:700;font-size:13px}
+.cm .cell input{width:100%;max-width:90px;font:600 17px var(--f-mono);text-align:center;border:1px solid var(--line);border-radius:8px;padding:4px;background:var(--surface);color:var(--ink)}
+.cm .ok{background:var(--hl-g)} .cm .ko{background:var(--hl-p)}
+.metrics{display:grid;gap:8px;margin-top:14px}
+.metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;background:var(--sunk);border-radius:10px;padding:8px 10px;align-items:baseline}
+.metric .nm{font-weight:700}
+.metric .nm small{font-weight:400;color:var(--muted)}
+.metric .v{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums;text-align:right}
+.metric .fx{grid-column:1/-1;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);overflow-x:auto;white-space:nowrap}
+.metric .bar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.metric .bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.scale{margin:12px 0 4px}
+.srow{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:4px 10px;align-items:center;margin:8px 0;font-size:14px}
+.srow .lab2{line-height:1.25}
+.srow .lab2 small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:11.5px}
+.strack{position:relative;height:18px;background:var(--sunk);border-radius:4px}
+.strack i{position:absolute;top:0;bottom:0;left:0;border-radius:4px;background:var(--accent)}
+.strack i.rng{background:repeating-linear-gradient(45deg,var(--accent) 0 3px,transparent 3px 6px);border-radius:0 4px 4px 0}
+.sticks{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:10px;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.sticks div:last-child{display:flex;justify-content:space-between}
+.mn{margin:16px 0}
+.mn .strip{height:16px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--accent) 0 2px,var(--accent-soft) 2px 4px)}
+.mn small{color:var(--muted);font-size:13px}
+.tbl{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--f-mono);font-weight:600;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td.bias{color:var(--warn);font-weight:700}
+.evo{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+.evo figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.evo svg{width:100%;display:block}
+.evo figcaption{font-size:14px;margin-top:6px}
+.evo figcaption b{font-family:var(--f-display);font-weight:600;font-size:16px;display:block}
+.quiz .score{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:14px;margin:10px 0}
+.qi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.qi .st{margin:0 0 8px}
+.qi .st b{font-family:var(--f-mono);color:var(--muted);font-weight:600;margin-right:6px}
+.qi .vf{display:flex;gap:8px}
+.qi .vf button{flex:1}
+.qi .fb{margin-top:8px;font-size:14.5px;border-radius:8px;padding:8px 10px}
+.qi .fb.good{background:var(--hl-g)} .qi .fb.bad{background:var(--hl-p)}
+footer{padding-block:30px 40px;color:var(--muted);font-size:13.5px}
+@media (prefers-reduced-motion: reduce){.neuron .flowl{animation:none}.prog{transition:none}}
+</style>
+</head>
+<body>
+
+
+<header class="hero wrap">
+  <div class="kicker">UE3 Biostatistiques · Lyon Est · Chapitre 10 · cours du Pr Roy</div>
+  <h1>Intelligence artificielle, <em>de la droite au neurone</em></h1>
+  <p class="lede">Tout le chapitre, réorganisé pour comprendre : chaque notion du poly est là, avec des simulations à manipuler. Le fil rouge du cours : un réseau de neurones repose sur les mêmes idées qu'un modèle de régression classique.</p>
+  <div class="legend">
+    <span><mark class="p">définition / idée clé</mark></span>
+    <span><mark class="g">terme à connaître</mark></span>
+    <span><mark class="y">chiffre / formule</mark></span>
+  </div>
+  <div class="flow"><span>Variabilité</span>→<span>Modèle</span>→<span>Estimation</span>→<span>Variance expliquée</span>→<span>IA</span>→<span>Réseaux</span>→<span>Big data</span>→<span>Évolution</span></div>
+  <div class="box piege" style="margin-top:18px"><span class="tag">Statut du chapitre</span>Chapitre créé en 2020-2021, donc peu de recul sur les QCM. Le Pr Roy a beaucoup insisté dessus : <b>pas d'impasse</b>. Si un passage te paraît abstrait, retiens surtout les définitions et les pièges signalés.</div>
+</header>
+
+<nav class="chap" aria-label="Chapitres">
+  <div class="wrap" id="chips">
+    <a class="chip" href="#a">A Variabilité</a>
+    <a class="chip" href="#b">B Modèles</a>
+    <a class="chip" href="#c">C Estimation</a>
+    <a class="chip" href="#d">D Variance</a>
+    <a class="chip" href="#e">E IA</a>
+    <a class="chip" href="#f">F Réseaux</a>
+    <a class="chip" href="#bd">F′ Big data</a>
+    <a class="chip" href="#g">G Évolution</a>
+    <a class="chip" href="#h">H Conclusion</a>
+    <a class="chip" href="#qcm">QCM</a>
+  </div>
+  <div class="prog" id="prog"></div>
+</nav>
+
+<main class="wrap">
+
+<!-- A -->
+<section id="a">
+  <div class="sec-head"><span class="letter">A</span><h2>Variabilité</h2></div>
+  <p>Un patient n'est jamais identique à un autre : sa maladie, sa réponse au traitement et son pronostic varient. La question de départ : <b>comment analyser, comprendre et décider dans un monde où la variabilité est la règle ?</b> Cette notion concerne toute la médecine, pas seulement les biostatistiques.</p>
+  <div class="box clair"><span class="tag">L'idée du prof</span>Si les patients étaient identiques, il n'y aurait besoin ni de biostatistique ni de médecine : un médecin avec la « notice de fonctionnement de l'homme » suffirait.</div>
+
+  <div class="lab">
+    <div class="lab-head"><b>Le nuage de points du poly</b><span>labo 1</span></div>
+    <p class="hint">Touche un losange pour voir son résidu. Données simulées autour des droites du poly.</p>
+    <div class="cvw" id="wA"><canvas id="cvA" aria-label="Poids de naissance selon l'âge gestationnel, garçons et filles"></canvas></div>
+    <div class="leg">
+      <span><i class="dot" style="background:var(--boy)"></i>Garçons : poids = −2 372,593 + 152,781 × âge</span>
+      <span><i class="dot" style="background:var(--girl)"></i>Filles : poids = −2 764,187 + 152,781 × âge</span>
+    </div>
+    <div class="body">
+      <div class="msg" id="readA"></div>
+      <div class="btns"><button class="b" id="togA" aria-pressed="false">Afficher tous les résidus</button></div>
+    </div>
+  </div>
+
+  <ul>
+    <li>Chaque <b>losange</b> = un individu (son poids réel).</li>
+    <li>Le <b>trait plein</b> = la <mark class="p">valeur du paramètre</mark>, plus précisément la moyenne du poids pour un âge donné.</li>
+    <li>À 38 SA, la moyenne des garçons est d'environ 3 500 g, mais ça ne veut pas dire que tous font 3 500 : on voit un individu à 3 100 et un autre à 4 000.</li>
+  </ul>
+  <div class="box retenir"><span class="tag">À retenir</span><mark class="p">Il existe une variabilité entre chaque individu.</mark> L'écart entre un losange (individu) et le trait plein (valeur du paramètre) s'appelle le <mark class="g">résidu</mark>. Cette notion sert pour toute la suite du cours.</div>
+  <div class="box note"><span class="tag">Précision</span>Le poly parle d'« âge » et de « 38 ans » : l'axe AGEGEST est l'<b>âge gestationnel en semaines d'aménorrhée</b> (SA), et POIDNAIS le poids de naissance en grammes.</div>
+</section>
+
+<!-- B -->
+<section id="b">
+  <div class="sec-head"><span class="letter">B</span><h2>Modèles</h2></div>
+  <p><mark class="g">Le modèle linéaire</mark> est <mark class="p">le plus simple</mark> : la variable expliquée Y s'écrit comme une forme linéaire de variables X<sub>j</sub> et de paramètres β<sub>j</sub>.</p>
+  <div class="formula">Y = β<sub>0</sub> + Σ β<sub>j</sub>X<sub>j</sub><small>+ un terme d'erreur, non représenté ici</small></div>
+  <p><mark class="g">En univarié</mark> (une seule variable X<sub>1</sub>) :</p>
+  <div class="formula">Y = β<sub>0</sub> + β<sub>1</sub>X<sub>1</sub><small>β<sub>1</sub> = pente de la droite de régression</small></div>
+  <div class="box clair"><span class="tag">En clair</span>C'est la fonction affine du lycée, <b>y = ax + b</b>, réécrite Y = β<sub>0</sub> + β<sub>1</sub>X<sub>1</sub>. Y est la <b>variable expliquée</b>, X<sub>1</sub> la <b>variable explicative</b>.</div>
+
+  <p>En médecine il y a <mark class="y">3 grands types de question</mark> : le diagnostic, le pronostic et la réponse à une thérapeutique. D'où <mark class="y">3 modèles</mark> :</p>
+  <div class="trio">
+    <div class="card"><span class="q">Question : quelle maladie ?</span><h4>1. Diagnostique <small style="font-weight:400;color:var(--muted)">(ex-logistique)</small></h4><p>Prennent en compte <mark class="p">l'effet de variables</mark> sur la <mark class="p">probabilité de maladie</mark>.</p><div class="ex">Exemple : le <b>modèle logistique</b>, modèle diagnostique <b>non linéaire</b>.</div></div>
+    <div class="card"><span class="q">Question : que va-t-il se passer ?</span><h4>2. Pronostique</h4><p>Étudient <mark class="p">l'effet de covariables chez les patients</mark> sur la <mark class="p">survenue d'événements</mark> comme la rechute ou le décès.</p><div class="ex">Exemple : le <mark class="g">modèle de survie de Cox</mark>.</div></div>
+    <div class="card"><span class="q">Question : le traitement marchera-t-il ?</span><h4>3. Théranostique</h4><p>Ou « de réponses thérapeutiques ». Étudient <mark class="p">l'effet des covariables</mark> sur <mark class="p">une réponse favorable au traitement</mark>.</p></div>
+  </div>
+</section>
+
+<!-- C -->
+<section id="c">
+  <div class="sec-head"><span class="letter">C</span><h2>Estimation</h2></div>
+  <p>Comment estimer les paramètres d'un modèle, c'est-à-dire les coefficients β associés aux variables explicatives X ? Ici, les paramètres sont <b>β<sub>0</sub> et β<sub>1</sub></b>. Deux méthodes au programme.</p>
+
+  <h3><span class="n">1</span>Méthode des moindres carrés ordinaires</h3>
+  <p>Pour le modèle linéaire simple, y = β<sub>0</sub> + β<sub>1</sub>x est la <mark class="p">relation théorique inconnue</mark> (trait plein). Sur l'échantillon d'étude, on obtient <mark class="p">une estimation</mark> de l'<mark class="g">ordonnée à l'origine β̂<sub>0</sub></mark> (= <mark class="g">l'intercept</mark>) et une estimation de <mark class="g">la pente β̂<sub>1</sub></mark>, qui caractérisent la droite en pointillés obtenue sur l'échantillon.</p>
+  <div class="box clair"><span class="tag">En clair</span>Le chapeau ^ signifie « estimé ». β<sub>1</sub> est la vraie pente, que personne ne connaît. β̂<sub>1</sub> est ce que tes données te permettent d'en dire.</div>
+  <p>L'objectif est d'obtenir la <mark class="g">droite de régression</mark> qui <mark class="p">passe le plus près possible de l'ensemble des points</mark>. On travaille sur les <b>résidus</b> : pour chaque valeur de X, l'écart entre la valeur observée y<sub>i</sub> et la valeur prédite par le modèle μ<sub>i</sub> (sur la droite).</p>
+  <div class="formula">e<sub>i</sub> = y<sub>i</sub> − μ<sub>i</sub><small>e<sub>i</sub> = les écarts, donc les résidus</small></div>
+  <p>On minimise <b>non pas la somme des écarts</b>, mais <mark class="p">la somme des</mark> <mark class="g">écarts quadratiques</mark> (au carré).</p>
+
+  <div class="lab">
+    <div class="lab-head"><b>Trouve la droite des moindres carrés</b><span>labo 2</span></div>
+    <p class="hint">Chaque carré a pour côté le résidu e<sub>i</sub> : sa surface vaut e<sub>i</sub>². La meilleure droite est celle qui rend la surface totale minimale.</p>
+    <div class="cvw" id="wB"><canvas id="cvB" aria-label="Droite de régression ajustable avec les carrés des résidus"></canvas></div>
+    <div class="leg"><span><i class="dot" style="background:var(--green)"></i>e<sub>i</sub> &gt; 0 (point au-dessus)</span><span><i class="dot" style="background:var(--warn)"></i>e<sub>i</sub> &lt; 0 (point en dessous)</span></div>
+    <div class="body">
+      <div class="ctrls">
+        <div class="ctrl"><label for="b0">Ordonnée à l'origine β̂<sub>0</sub> <output id="ob0"></output></label><input type="range" id="b0" min="-2" max="8" step="0.05"></div>
+        <div class="ctrl"><label for="b1">Pente β̂<sub>1</sub> <output id="ob1"></output></label><input type="range" id="b1" min="-0.6" max="2" step="0.01"></div>
+      </div>
+      <div class="reads">
+        <div class="read"><small>Somme des écarts Σ e<sub>i</sub></small><b id="rSe"></b></div>
+        <div class="read"><small>Somme des carrés Σ e<sub>i</sub>²</small><b id="rS2"></b></div>
+        <div class="read"><small>Minimum possible de Σ e<sub>i</sub>²</small><b id="rMin"></b></div>
+      </div>
+      <div class="msg" id="msgB"></div>
+      <div class="btns">
+        <button class="b pri" id="fitB">Ajuster par moindres carrés</button>
+        <button class="b" id="flatB">Droite horizontale à la moyenne</button>
+        <button class="b" id="rndB">Droite au hasard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="box clair"><span class="tag">Pourquoi des carrés ? L'exemple du tuteur</span>Un individu pèse 80 kg, un autre 40 kg : la moyenne est 60 kg, donc la droite de régression est à 60.<br>• 80 est 20 <b>au-dessus</b> : e = +20<br>• 40 est 20 <b>en dessous</b> : e = −20<br>Total : +20 − 20 = 0, comme s'il n'y avait aucune erreur alors qu'il y en a. Au carré : 400 + 400 = 800, car <b>un carré est toujours positif</b>. Le labo le montre : la droite horizontale à la moyenne a une somme des écarts nulle, et pourtant elle est mauvaise.</div>
+  <div class="box piege"><span class="tag">Piège QCM</span>« On minimise la somme des écarts » sans le mot <b>quadratiques</b> : c'est <b>faux</b>.</div>
+
+  <p>On choisit donc les paramètres qui rendent la somme des erreurs au carré la plus petite possible :</p>
+  <div class="formula"><mark class="y">Σ e<sub>i</sub>² = Σ (y<sub>i</sub> − μ<sub>i</sub>)² = Σ [y<sub>i</sub> − (β<sub>0</sub> + β<sub>1</sub>x<sub>i</sub>)]²</mark><small>somme de i = 1 à n, sur les n valeurs de l'échantillon</small></div>
+  <ul>
+    <li>Dans un <mark class="g">modèle de régression linéaire</mark>, <mark class="p">il faut dériver pour minimiser la somme des écarts quadratiques</mark> : la fonction est minimale quand les dérivées s'annulent.</li>
+    <li>On annule les <b>dérivées partielles</b> par rapport aux deux paramètres, ce qui donne <mark class="p">une solution unique pour β̂<sub>0</sub> et β̂<sub>1</sub></mark>.</li>
+    <li><mark class="p">Les moindres carrés correspondent donc à un</mark> <b>estimateur</b> et <mark class="p">fournissent des estimations des paramètres</mark>.</li>
+  </ul>
+
+  <p><mark class="g">Exemple de régression linéaire multiple</mark> (labo 1) : le poids de naissance (Y) est expliqué par <b>deux variables</b>, la durée de grossesse (âge gestationnel en SA) et le sexe. La droite des garçons est décalée vers le haut : en moyenne, leur poids est plus élevé. Mais on voit une <mark class="p">forte dispersion des valeurs</mark> autour des valeurs prédites : <mark class="p">la part de la variabilité du poids expliquée par la durée de la grossesse ou par le sexe est faible</mark>.</p>
+  <div class="box clair"><span class="tag">Pourquoi faible ?</span>Même si la droite des garçons est plus haute, certains garçons pèsent moins que certaines filles (des losanges bleus sous des losanges roses). Le sexe n'explique donc pas vraiment la variabilité.</div>
+
+  <h3><span class="n">2</span>Vraisemblance</h3>
+  <p><mark class="g">La vraisemblance</mark> de la valeur d'un paramètre est <mark class="p">la probabilité des données si le paramètre a cette valeur</mark>. C'est une <b>quantité qui mesure l'accord</b> des données avec la valeur de ce paramètre.</p>
+  <p>La <mark class="g">méthode du maximum de vraisemblance</mark> consiste à <mark class="p">choisir pour estimation du (ou des) paramètre(s) la valeur qui a la vraisemblance maximale</mark>. C'est une <b>méthode générale</b> de construction d'estimateurs.</p>
+  <div class="box clair"><span class="tag">Exemple du tuteur</span>Les paramètres sont β<sub>0</sub> et β<sub>1</sub> ; les données, ce sont les poids. À 38 SA on observe un poids de 3 500 g. On se demande : si β<sub>0</sub> = 30 et β<sub>1</sub> = 40 (valeurs au pif), quelle est la probabilité d'observer 3 500 ? On teste plein de valeurs de paramètres et on garde celles pour lesquelles cette probabilité est la plus élevée.</div>
+
+  <div class="lab">
+    <div class="lab-head"><b>Le maximum de vraisemblance, à la main</b><span>labo 3</span></div>
+    <p class="hint">Version simplifiée à un seul paramètre : μ, le poids moyen à 38 SA, avec 5 nouveau-nés observés. Bouge μ : la hauteur de la cloche au niveau de chaque bébé est sa probabilité. La vraisemblance est le produit de ces hauteurs.</p>
+    <div class="cvw" id="wL"><canvas id="cvL" aria-label="Courbe de vraisemblance du poids moyen"></canvas></div>
+    <div class="body">
+      <div class="ctrls"><div class="ctrl"><label for="mu">Valeur testée de μ <output id="omu"></output></label><input type="range" id="mu" min="2800" max="4300" step="10"></div></div>
+      <div class="reads">
+        <div class="read"><small>Vraisemblance L(μ), en % du maximum</small><b id="rL"></b></div>
+        <div class="read"><small>Σ (y<sub>i</sub> − μ)² (moindres carrés)</small><b id="rSS"></b></div>
+        <div class="read"><small>Moyenne des 5 poids</small><b id="rMean"></b></div>
+      </div>
+      <div class="msg" id="msgL"></div>
+      <div class="btns"><button class="b pri" id="maxL">Aller au maximum</button></div>
+    </div>
+  </div>
+  <p>La <mark class="g">vraisemblance d'un modèle</mark> est la vraisemblance des estimations du maximum de vraisemblance de ses paramètres.</p>
+  <div class="box retenir"><span class="tag">À retenir</span>
+    <p>• <mark class="p">Si le modèle est linéaire, la méthode de vraisemblance fournit les mêmes estimations des paramètres que la méthode des moindres carrés.</mark> Dans le labo, le maximum tombe pile sur la moyenne, qui est aussi la valeur qui minimise la somme des carrés.</p>
+    <p>• Toutefois, <mark class="p">le maximum de vraisemblance est un estimateur différent</mark> de la méthode des moindres carrés ordinaires.</p>
+    <p>• Quand le <mark class="p">modèle n'est pas linéaire</mark> (ex. logistique), la <mark class="g">méthode des moindres carrés n'est pas utilisable</mark> : on utilise le maximum de vraisemblance pour obtenir une estimation des paramètres.</p>
+  </div>
+  <div class="box piege"><span class="tag">Piège QCM</span>Mêmes <b>estimations</b> (si linéaire) ≠ même <b>estimateur</b>. Les deux affirmations sont vraies en même temps.</div>
+</section>
+
+<!-- D -->
+<section id="d">
+  <div class="sec-head"><span class="letter">D</span><h2>Part de la variance expliquée</h2></div>
+  <p>Sur les mêmes données de poids de naissance, la <mark class="p">variance totale</mark> (la dispersion des poids) <mark class="p">n'est expliquée que partiellement par le modèle</mark>. La durée de la grossesse et le sexe n'expliquent qu'une partie de la variance totale.</p>
+  <p><mark class="p">Une grande partie</mark> de celle-ci est <mark class="p">expliquée par la variance résiduelle</mark>, c'est-à-dire <mark class="p">la dispersion des valeurs observées autour des valeurs prédites</mark> (les résidus de la section A).</p>
+  <div class="lab">
+    <div class="lab-head"><b>Découpage de la variance totale</b><span>labo 4</span></div>
+    <p class="hint">Calculé sur les points simulés du labo 1.</p>
+    <div class="body">
+      <div style="display:flex;height:42px;border-radius:8px;overflow:hidden;font-family:var(--f-mono);font-size:12.5px">
+        <div id="vExp" style="background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;padding-left:8px;white-space:nowrap;overflow:hidden"></div>
+        <div id="vRes" style="background:repeating-linear-gradient(45deg,var(--sunk) 0 6px,var(--line) 6px 12px);flex:1;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;white-space:nowrap"></div>
+      </div>
+      <div class="leg" style="padding:8px 0 0"><span><i class="dot" style="background:var(--accent);transform:none"></i>Expliquée par le modèle (âge gestationnel + sexe)</span><span><i class="dot" style="background:var(--line);transform:none"></i>Variance résiduelle</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- E -->
+<section id="e">
+  <div class="sec-head"><span class="letter">E</span><h2>Intelligence artificielle</h2></div>
+  <p><mark class="g">L'intelligence</mark> est la <mark class="p"><b>faculté d'adaptation à l'environnement</b></mark>. Elle inclut déjà un certain niveau d'apprentissage. <mark class="p">L'intelligence artificielle consiste à résoudre des problématiques simples ou complexes à l'aide de modèles usuels et de réseaux de neurones.</mark></p>
+  <h3>Les étapes à connaître</h3>
+  <ul class="timeline">
+    <li><span class="y">Seconde Guerre mondiale</span><mark class="g">Travaux de cryptanalyse</mark> initialement <mark class="p">développés par des mathématiciens polonais</mark> et <mark class="p">poursuivis</mark> par <mark class="g">Alan Turing</mark> et son équipe : ils ont permis de <mark class="p">décrypter</mark> la machine <mark class="g">Enigma</mark>. <mark class="p">La bombe électronique de Turing</mark> est un des <mark class="p">éléments contributifs à ce succès</mark>.</li>
+    <li><span class="y">Le test de Turing</span>Un des <mark class="p">éléments importants du développement</mark> de l'IA. Il est <mark class="p">réalisé entre une machine et un homme</mark> ; le <mark class="p">but de la machine est de ne pas permettre à l'homme de savoir s'il s'adresse à un ordinateur ou à un humain</mark>.</li>
+    <li><span class="y">1997</span>L'ordinateur <mark class="g">Deep Blue</mark> d'<mark class="g">IBM</mark> bat le champion d'échecs <mark class="g">Garry Kasparov</mark>.</li>
+    <li><span class="y">Développements récents</span>L'IA a bénéficié de la <mark class="p">disponibilité de données de grande dimension</mark> et d'une <mark class="p">augmentation de la puissance de calcul</mark>.</li>
+  </ul>
+
+  <h3>L'IA n'invente pas</h3>
+  <p><mark class="p">L'IA n'invente pas</mark>, contrairement à l'intelligence humaine. Le terme « intelligence » pose problème : il a été <mark class="p">popularisé par la CIA</mark> (<i>Central Intelligence Agency</i>, l'« Agence centrale de renseignement »). Ici, intelligence veut dire <b>renseignement</b>.</p>
+  <div class="box retenir"><span class="tag">À retenir</span>Une <mark class="p">bonne traduction</mark> de l'intelligence (artificielle) serait la <mark class="p">capacité à extraire des informations à partir de données</mark>, mais <b>pas toutes les dimensions qu'on attribue à l'intelligence humaine</b>. <mark class="p">L'information vient des données.</mark></div>
+  <ul>
+    <li>Objectif des modèles d'apprentissage et des réseaux d'apprentissage profond : <mark class="p">effectuer des prédictions chez des sujets qui n'ont pas participé à leur construction</mark>.</li>
+    <li>Ces modèles (comme les <mark class="g">réseaux neuronaux d'apprentissage profond</mark>) doivent donc <mark class="p">apprendre des données</mark>.</li>
+  </ul>
+  <div class="box note"><span class="tag">Les deux questions posées par le cours</span>Quelle est l'information réellement contenue dans les données ? Est-il possible, après avoir appris de ces données, d'obtenir des prédictions de qualité suffisante chez des individus qui n'ont pas contribué à construire le modèle ?</div>
+  <p style="font-size:14.5px">Le tuteur conseille cette vidéo avant la suite, très abstraite : <a href="https://youtu.be/gPVVsw2OWdM" target="_blank" rel="noopener">vidéo sur les réseaux de neurones (YouTube)</a>.</p>
+</section>
+
+<!-- F -->
+<section id="f">
+  <div class="sec-head"><span class="letter">F</span><h2>Réseaux neuronaux</h2></div>
+
+  <h3><span class="n">1</span>Réseau</h3>
+  <ul>
+    <li><mark class="g">Les réseaux</mark> sont des <mark class="p">ensembles de neurones</mark> et <mark class="p">de connexions entre neurones</mark>.</li>
+    <li><mark class="g">Les neurones</mark> <mark class="p">reçoivent des signaux en entrée</mark>, <mark class="p">les traitent</mark>, et <mark class="p">fournissent des signaux en sortie</mark> : ce sont des <mark class="p">unités de calcul</mark>.</li>
+    <li>Les traitements peuvent être <mark class="p">simples</mark> (comme <mark class="p">la sommation de signaux entrants</mark>) ou beaucoup plus complexes.</li>
+    <li><mark class="g">Les connexions</mark> caractérisent les flux entre les neurones.</li>
+  </ul>
+
+  <h3><span class="n">2</span>Perceptron monocouche</h3>
+  <p>Son schéma est <b>très simple</b> : un <mark class="p">ensemble de neurones recueillant <i>I</i> signaux en entrée</mark>, chacun des <i>I</i> neurones d'entrée reconnaissant un signal. Tous sont <mark class="p">connectés à <mark class="y">1 ou plusieurs</mark> neurone(s) de sortie</mark>, <mark class="p">chaque neurone de sortie</mark> ayant sa <mark class="p">propre fonction d'activation</mark>. <mark class="p"><i>I</i> est la dimension du problème.</mark></p>
+
+  <div class="lab">
+    <div class="lab-head"><b>Ce qui se passe dans le neurone de sortie</b><span>schéma animé</span></div>
+    <div class="body" style="overflow-x:auto">
+      <svg class="neuron" viewBox="0 0 380 250" role="img" aria-label="Perceptron : entrées pondérées, somme, fonction d'activation, sortie">
+        <path class="wire" d="M40 32 L170 112"/><path class="wire" d="M40 82 L168 118"/><path class="wire" d="M40 130 L166 125"/><path class="wire" d="M40 210 L170 140"/>
+        <path class="flowl" d="M40 32 L170 112"/><path class="flowl" d="M40 82 L168 118"/><path class="flowl" d="M40 130 L166 125"/><path class="flowl" d="M40 210 L170 140"/>
+        <circle class="bias" cx="28" cy="32" r="15"/><text x="28" y="36" text-anchor="middle">1</text><text class="mut" x="48" y="20">X₀ = 1</text>
+        <circle class="in" cx="28" cy="82" r="15"/><text x="28" y="86" text-anchor="middle">X₁</text>
+        <circle class="in" cx="28" cy="130" r="15"/><text x="28" y="134" text-anchor="middle">X₂</text>
+        <text x="28" y="174" text-anchor="middle">⋮</text>
+        <circle class="in" cx="28" cy="210" r="15"/><text x="28" y="214" text-anchor="middle">X<tspan font-size="9" dy="3">I</tspan></text>
+        <text class="mut" x="98" y="62">w₀ = b</text><text class="mut" x="100" y="94">w₁</text><text class="mut" x="104" y="122">w₂</text><text class="mut" x="104" y="190">w<tspan font-size="8" dy="2">I</tspan></text>
+        <circle class="core" cx="205" cy="125" r="40"/>
+        <text x="205" y="120" text-anchor="middle" font-size="13">Σ wᵢXᵢ</text><text class="mut" x="205" y="137" text-anchor="middle">i = 0 → I</text>
+        <path class="wire" d="M245 125 L268 125"/><path class="arr" d="M268 120 L276 125 L268 130 Z"/>
+        <rect class="act" x="278" y="98" width="56" height="54" rx="8"/>
+        <path class="step" d="M286 140 L306 140 L306 110 L326 110"/>
+        <text class="mut" x="306" y="166" text-anchor="middle">activation</text>
+        <path class="wire" d="M334 125 L358 125"/><path class="arr" d="M358 120 L366 125 L358 130 Z"/>
+        <text x="372" y="112" text-anchor="end" font-size="11">sortie</text><text x="372" y="146" text-anchor="end" font-size="11">0 ou 1</text>
+      </svg>
+    </div>
+  </div>
+
+  <p>Avec 1 seul neurone de sortie, celui-ci reçoit une <b>forme linéaire de <i>I</i>+1 termes</b> :</p>
+  <div class="formula"><mark class="y">Σ<sub>i=1→I</sub> w<sub>i</sub>X<sub>i</sub> + b</mark> = Σ<sub>i=0→I</sub> w<sub>i</sub>X<sub>i</sub>  avec  w<sub>0</sub> = b, X<sub>0</sub> = 1<small>w = oméga = les poids · b = le biais</small></div>
+  <ul>
+    <li>C'est <mark class="p">la somme pondérée des <i>I</i> signaux</mark> émis par les neurones d'entrée (chaque X<sub>i</sub> multiplié par son poids w<sub>i</sub>), à laquelle on ajoute le <mark class="g">paramètre b</mark> <mark class="p">caractérisant le biais</mark> du perceptron. Le « +1 » de <i>I</i>+1, c'est le biais.</li>
+    <li>On réécrit la somme de i = 0 à <i>I</i> en posant w<sub>0</sub> = b et X<sub>0</sub> = 1 : le biais devient un poids comme un autre, attaché à une entrée qui vaut toujours 1.</li>
+    <li><mark class="p">Cette forme linéaire</mark> passe ensuite <mark class="p">par une fonction d'activation</mark> qui <mark class="p">fournit un signal en sortie</mark>.</li>
+  </ul>
+  <div class="box clair"><span class="tag">En clair</span>Un neurone, c'est un <b>vote pondéré</b> : chaque entrée vote avec un poids plus ou moins fort, on additionne, puis la fonction d'activation décide de la réponse. Note que Σ w<sub>i</sub>X<sub>i</sub> + b a exactement la forme de β<sub>0</sub> + Σ β<sub>j</sub>X<sub>j</sub> : le biais joue le rôle de l'intercept, les poids celui des β.</div>
+  <div class="box retenir"><span class="tag">À retenir</span><mark class="g">Le perceptron monocouche</mark> <b>ne contient pas de couche cachée</b> et comprend <b>pour chaque neurone de sortie</b> : <mark class="y"><i>I</i> poids + 1 paramètre de biais + 1 fonction d'activation</mark>.</div>
+
+  <p>La <mark class="g">fonction d'activation d'Heaviside</mark> a été <mark class="p">largement utilisée</mark> avec les perceptrons monocouches :</p>
+  <ul>
+    <li>La forme linéaire de <i>I</i>+1 termes est <mark class="p">comparée à une valeur seuil θ</mark>.</li>
+    <li>Elle renvoie un <mark class="p">signal booléen</mark> (<mark class="y">2 états</mark> : Vrai ou Faux, valeur 1 ou 0) : <b>1 si la forme linéaire est ≥ θ</b>, 0 sinon.</li>
+    <li>Cela revient à comparer à 0, avec la <mark class="g">fonction d'Heaviside</mark>, la valeur z :</li>
+  </ul>
+  <div class="formula"><mark class="y">z = Σ<sub>i=0→I</sub> w<sub>i</sub>X<sub>i</sub> − θ</mark><small>z ≥ 0 → sortie 1 · z &lt; 0 → sortie 0 · courbe en <b>marche d'escalier</b></small></div>
+
+  <p>Application : <mark class="p">classer des points en deux groupes</mark> (bleus ou verts). Le perceptron comprend <mark class="p">2 neurones en entrée</mark> (X<sub>1</sub>, X<sub>2</sub>), <mark class="p">1 neurone en sortie</mark> et une fonction d'activation <mark class="g">marche d'Heaviside</mark>. <mark class="p">Le modèle de classification</mark> sépare le plan (X<sub>1</sub>, X<sub>2</sub>) en <mark class="y">2 demi-plans</mark> <mark class="p">séparés par une droite dont l'équation découle de l'annulation de z</mark>.</p>
+  <div class="formula">z = 0  ⟺  X<sub>2</sub> = <mark class="y">(θ − w<sub>0</sub>) / w<sub>2</sub></mark> + <mark class="y">(−w<sub>1</sub> / w<sub>2</sub>)</mark> · X<sub>1</sub><small>ordonnée à l'origine (θ − w<sub>0</sub>)/w<sub>2</sub> · pente −w<sub>1</sub>/w<sub>2</sub></small></div>
+
+  <div class="lab">
+    <div class="lab-head"><b>Perceptron classifieur</b><span>labo 5</span></div>
+    <p class="hint">Règle les poids pour séparer bleus et verts, ou laisse le perceptron apprendre seul. Zone bleue : sortie 1 (z ≥ 0). Zone verte : sortie 0. Les points cerclés sont mal classés.</p>
+    <div class="cvw" id="wP"><canvas id="cvP" aria-label="Plan X1 X2 séparé par la droite z = 0"></canvas></div>
+    <div class="body">
+      <div class="ctrls">
+        <div class="ctrl"><label for="pw1">w<sub>1</sub> <output id="opw1"></output></label><input type="range" id="pw1" min="-5" max="5" step="0.05"></div>
+        <div class="ctrl"><label for="pw2">w<sub>2</sub> <output id="opw2"></output></label><input type="range" id="pw2" min="-5" max="5" step="0.05"></div>
+        <div class="ctrl"><label for="pw0">w<sub>0</sub> = b (biais) <output id="opw0"></output></label><input type="range" id="pw0" min="-10" max="10" step="0.05"></div>
+        <div class="ctrl"><label for="pth">Seuil θ <output id="opth"></output></label><input type="range" id="pth" min="-5" max="5" step="0.05"></div>
+      </div>
+      <div class="reads">
+        <div class="read"><small>Ordonnée à l'origine (θ − w<sub>0</sub>)/w<sub>2</sub></small><b id="rInt"></b></div>
+        <div class="read"><small>Pente −w<sub>1</sub>/w<sub>2</sub></small><b id="rSlope"></b></div>
+        <div class="read"><small>Points bien classés</small><b id="rOk"></b></div>
+      </div>
+      <div class="msg" id="msgP"></div>
+      <div class="btns">
+        <button class="b pri" id="learnP">Lancer l'apprentissage</button>
+        <button class="b" id="randP">Poids aléatoires</button>
+      </div>
+    </div>
+  </div>
+  <p>Avec cette fonction d'activation de type marche :</p>
+  <ul>
+    <li><b>3 neurones en entrée</b> → la solution est un <mark class="p">séparateur plan</mark> de l'espace de dimension 3.</li>
+    <li><b>Plus de 3 neurones en entrée</b> → un <mark class="p">séparateur</mark> de type <mark class="g">hyperplan</mark>.</li>
+  </ul>
+  <div class="box piege"><span class="tag">Piège QCM</span>2 entrées → droite · 3 entrées → plan · plus de 3 → hyperplan. Le nombre d'entrées <i>I</i> est la dimension du problème.</div>
+
+  <h3><span class="n">3</span>Réseau neuronal multicouche</h3>
+  <p>Structure simple :</p>
+  <ul>
+    <li><mark class="g">une couche d'entrée</mark> avec <mark class="p">autant de neurones d'entrée que de signaux à capter</mark> ;</li>
+    <li><mark class="p">une</mark> ou <mark class="p">plusieurs</mark> <mark class="g">couches cachées</mark> ;</li>
+    <li><mark class="g">une couche de sortie</mark> qui fournit un ou plusieurs signaux : <mark class="p">autant de neurones en sortie que de modalités d'intérêt</mark> s'il s'agit d'un outil de classification, <mark class="p">ou</mark> des <mark class="p">signaux quantitatifs</mark>.</li>
+  </ul>
+
+  <p>Il existe des <b>fonctions alternatives à la fonction marche</b> :</p>
+  <div class="lab">
+    <div class="lab-head"><b>Les fonctions d'activation</b><span>labo 6</span></div>
+    <p class="hint">Choisis une fonction, puis fais glisser z pour lire la sortie H(z).</p>
+    <div class="body" style="padding-bottom:0"><div class="btns" id="actTabs" style="margin-top:0"></div></div>
+    <div class="cvw" id="wAct"><canvas id="cvAct" aria-label="Courbe de la fonction d'activation"></canvas></div>
+    <div class="body">
+      <div class="ctrls"><div class="ctrl"><label for="zA">z = Σ w<sub>i</sub>X<sub>i</sub> − θ <output id="ozA"></output></label><input type="range" id="zA" min="-4" max="4" step="0.05" value="0.8"></div></div>
+      <div class="formula" id="actF" style="margin-bottom:0"></div>
+      <p id="actT" style="font-size:15px"></p>
+    </div>
+  </div>
+  <ul>
+    <li><mark class="g">ReLU</mark> (<i>Rectifier Linear Unit</i>), définie <mark class="y">sur R → [0 ; +∞[</mark>, fonction affine par morceaux : <mark class="y">H(z) = max(0, z)</mark>, avec z = Σ w<sub>i</sub>X<sub>i</sub> − θ. On garde le maximum entre 0 et z. Très utilisée pour les <b>couches intermédiaires</b>.</li>
+    <li><mark class="g">Tangente hyperbolique</mark>, définie <mark class="y">sur R → [−1 ; 1]</mark> : H(z) = tanh(z).</li>
+    <li><mark class="g">Sigmoïde</mark> (logistique), définie <mark class="y">sur R → [0 ; 1]</mark> : <mark class="y">H(z) = 1 / (1 + exp(−z))</mark>.</li>
+    <li><mark class="g">Softmax</mark> : <mark class="p">extension de la fonction sigmoïde</mark> (logistique). Elle est <mark class="p">continuellement dérivable</mark>, ce qui la rend intéressante pour l'entraînement des réseaux.</li>
+  </ul>
+  <div class="box note"><span class="tag">Attention au commentaire du poly</span>La note du tuteur dit que ReLU fait passer z « à une probabilité entre 0 et 1 ». C'est inexact : ReLU renvoie des valeurs dans [0 ; +∞[ (le cours le dit lui-même), donc pas une probabilité. Ce sont la sigmoïde et la softmax qui donnent des valeurs entre 0 et 1.</div>
+
+  <div class="lab">
+    <div class="lab-head"><b>Softmax : des scores aux probabilités</b><span>labo 7</span></div>
+    <p class="hint">Un réseau qui classe en 3 diagnostics sort 3 scores. Softmax les transforme en probabilités qui font 100 % au total : softmax(z<sub>k</sub>) = e<sup>z<sub>k</sub></sup> / Σ e<sup>z<sub>j</sub></sup>.</p>
+    <div class="body">
+      <div class="ctrls" id="smC"></div>
+      <div id="smBars" style="display:grid;gap:8px;margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div class="lab">
+    <div class="lab-head"><b>Pourquoi des fonctions continues ?</b><span>labo 8</span></div>
+    <p class="hint">On fait varier un poids w (ici z = 4w − 2). Compare ce que « voit » chaque fonction.</p>
+    <div class="body">
+      <div class="ctrls"><div class="ctrl"><label for="wC">Poids w <output id="owC"></output></label><input type="range" id="wC" min="0" max="1" step="0.01" value="0.3"></div></div>
+      <div id="contBars" style="display:grid;gap:8px;margin-top:12px"></div>
+      <p style="font-size:15px">Avec Heaviside, que le poids vaille 0,3 ou 0,4, la sortie reste 0 : on n'a aucune indication pour savoir dans quel sens corriger les poids. Avec une fonction continue, une petite variation du poids donne un résultat légèrement différent, donc plus d'information.</p>
+    </div>
+  </div>
+  <div class="box retenir"><span class="tag">À retenir</span>La <mark class="g">fonction Heaviside</mark> <mark class="p">n'a donc plus trop de raison d'être utilisée</mark> : elle ne donne pas assez d'information sur les poids.</div>
+
+  <h3><span class="n">4</span>Architectures</h3>
+  <ul>
+    <li>Les <mark class="g">réseaux neuronaux à propagation avant</mark> (<i>feed-forward networks</i>), vus précédemment : un neurone de la couche J reçoit des signaux de la couche J−1 et transmet aux neurones de la couche J+1.</li>
+    <li>Les <mark class="g">réseaux récurrents</mark>, <mark class="p">plus complexes</mark>, peuvent avoir des <mark class="p">boucles d'activation</mark> : le neurone de la couche J peut aussi transmettre à d'autres neurones de <b>la même couche</b> et à des neurones de <b>la couche J−1</b>.</li>
+  </ul>
+
+  <div class="lab">
+    <div class="lab-head"><b>Réseau multicouche en action</b><span>labo 9</span></div>
+    <div class="body" style="padding-bottom:4px"><div class="btns" style="margin-top:0">
+      <button class="b" data-mode="fwd" aria-pressed="true">Propagation avant</button>
+      <button class="b" data-mode="rec" aria-pressed="false">Récurrent</button>
+      <button class="b" data-mode="bp" aria-pressed="false">Apprentissage</button>
+    </div></div>
+    <div class="cvw" id="wN"><canvas id="cvN" aria-label="Réseau de neurones multicouche animé"></canvas></div>
+    <div class="body">
+      <p class="msg" id="capN" style="margin-top:0"></p>
+      <div class="btns" style="margin-top:4px"><button class="b" id="playN">Pause</button></div>
+    </div>
+  </div>
+
+  <h3><span class="n">5</span>Apprentissage supervisé</h3>
+  <ul>
+    <li>Le réseau <mark class="p">apprend à partir des données</mark>. Ses paramètres sont <b>les poids</b>, ajustés par apprentissage.</li>
+    <li>Les valeurs initiales sont <b>aléatoires</b> et les <mark class="p">poids sont mis à jour en continu</mark> (c'est ce que fait le bouton « Lancer l'apprentissage » du labo 5).</li>
+    <li>L'<b>échantillon d'apprentissage</b> intègre la <b>variable réponse</b> (d'où « supervisé ») : l'objectif est de prédire une valeur, ou un ou plusieurs signaux en sortie, pour des observations qui <b>n'ont pas contribué</b> à l'apprentissage.</li>
+  </ul>
+  <p>Les <mark class="p">corrections des poids</mark> se font par :</p>
+  <div class="trio">
+    <div class="card"><span class="q">pour les réseaux à propagation avant</span><h4>Rétropropagation du gradient</h4><p>Ou méthodes assimilées. On corrige les poids <b>de la dernière couche jusqu'à la première</b>.</p></div>
+    <div class="card"><span class="q">pour les réseaux récurrents</span><h4>Rétropropagation à travers le temps</h4><p>Version adaptée aux réseaux qui ont des boucles.</p></div>
+  </div>
+  <div class="box retenir"><span class="tag">À retenir</span>L'objectif de cet apprentissage est de <mark class="p">maximiser la vraisemblance des données de l'échantillon d'apprentissage</mark>. Les <mark class="p">questions relatives aux réseaux de neurones</mark> sont donc <mark class="p">proches</mark> des <mark class="p">questions relatives aux modèles statistiques</mark>.</div>
+
+  <h3><span class="n">6</span>Performance d'un réseau de classification (sur échantillon test)</h3>
+  <p>L'étude des performances d'un réseau utilisé comme algorithme de classification est plus <mark class="p">intéressante sur le plan clinique</mark>. Les critères retenus :</p>
+  <div class="lab">
+    <div class="lab-head"><b>Calculateur de performances</b><span>labo 10</span></div>
+    <p class="hint">Modifie les effectifs : tous les critères se recalculent. Exemple d'un réseau qui détecte une maladie sur 200 patients test.</p>
+    <div class="body">
+      <div class="cm">
+        <div></div><div class="h">Réseau dit +</div><div class="h">Réseau dit −</div>
+        <div class="h">Malades</div>
+        <div class="cell ok"><label for="cVP">VP</label><input id="cVP" type="number" min="0" value="40" inputmode="numeric"></div>
+        <div class="cell ko"><label for="cFN">FN</label><input id="cFN" type="number" min="0" value="10" inputmode="numeric"></div>
+        <div class="h">Non malades</div>
+        <div class="cell ko"><label for="cFP">FP</label><input id="cFP" type="number" min="0" value="20" inputmode="numeric"></div>
+        <div class="cell ok"><label for="cVN">VN</label><input id="cVN" type="number" min="0" value="130" inputmode="numeric"></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </div>
+  </div>
+  <ul>
+    <li><mark class="g">Exactitude</mark> = <mark class="p">proportion de l'ensemble des résultats corrects</mark> : <mark class="y">(VP + VN) / (VP + VN + FP + FN)</mark></li>
+    <li><mark class="g">Rappel</mark> = <mark class="g">sensibilité</mark> : <mark class="y">VP / (VP + FN)</mark></li>
+    <li><mark class="g">Précision</mark> = <mark class="g">VPP</mark> : <mark class="y">VP / (VP + FP)</mark></li>
+    <li><mark class="g">Spécificité</mark> : <mark class="y">VN / (VN + FP)</mark></li>
+    <li><mark class="g">Score F1</mark> (nouveau en 2023/24) : <mark class="y">2 / (1/précision + 1/rappel) = 2 × précision × rappel / (précision + rappel)</mark>. C'est la moyenne harmonique de la précision (exactitude des prédictions positives) et du rappel (capacité à retrouver tous les vrais positifs). La 2ᵉ écriture n'est pas du prof, mais elle est plus pratique.</li>
+    <li><mark class="g">L'aire sous la courbe ROC (AUROC)</mark>.</li>
+  </ul>
+  <div class="box piege"><span class="tag">/!\ Piège QCM</span>Ces critères doivent être <mark class="p">évalués sur l'échantillon test</mark>, <mark class="p">et non sur l'échantillon sur lequel l'algorithme a appris</mark> : il a appris en minimisant ses erreurs sur ce dernier, donc il y paraîtrait trop bon.</div>
+</section>
+
+<!-- Big data -->
+<section id="bd">
+  <div class="sec-head"><span class="letter">F′</span><h2>Big data (données de grande dimension)</h2></div>
+  <p class="kicker" style="margin-top:6px">Le poly numérote aussi cette partie « F »</p>
+  <p>Les données sont de <mark class="p">grande dimension</mark> à travers :</p>
+  <ul>
+    <li>le <mark class="g">grand nombre d'observations n</mark> : entrepôts de données (hospitaliers, régionaux, bases de données de l'assurance maladie) ;</li>
+    <li>le <mark class="g">grand nombre de variables m</mark> : en <mark class="p">biologie moléculaire</mark> on parle des <mark class="g">omics</mark>, en <mark class="p">imagerie médicale</mark> de <mark class="g">radiomique</mark> ;</li>
+    <li>ou les deux à la fois.</li>
+  </ul>
+
+  <h3>Les omics (m ≫ n)</h3>
+  <p>Beaucoup plus de variables que de patients : <mark class="g">génomique</mark>, <mark class="g">transcriptomique</mark>, <mark class="g">protéomique</mark>, et la <mark class="g">radiomique</mark>.</p>
+  <div class="mn">
+    <div class="strip" role="img" aria-label="Tableau de données très large et très plat"></div>
+    <small>Un tableau « omics » : peu de lignes (patients, n), énormément de colonnes (variables, m). Avec 200 patients et 500 000 SNP, il serait 2 500 fois plus large que haut.</small>
+  </div>
+  <div class="lab">
+    <div class="lab-head"><b>Les ordres de grandeur à connaître</b><span>échelle logarithmique</span></div>
+    <div class="body">
+      <div class="scale">
+        <div class="srow"><div class="lab2"><b>Génome entier</b><small>3 × 10⁹ pb</small></div><div class="strack"><i style="width:93.5%"></i></div></div>
+        <div class="srow"><div class="lab2"><b>Exome (1 %)</b><small>3 × 10⁷ pb</small></div><div class="strack"><i style="width:68.5%"></i></div></div>
+        <div class="srow"><div class="lab2"><b>SNP étudiés</b><small>500 000 à 2 M</small></div><div class="strack"><i style="width:46.2%"></i><i class="rng" style="left:46.2%;width:7.6%"></i></div></div>
+        <div class="srow"><div class="lab2"><b>Gènes (transcripto)</b><small>22 000</small></div><div class="strack"><i style="width:29.3%"></i></div></div>
+        <div class="srow"><div class="lab2"><b>Pics (protéomique)</b><small>300 à 500</small></div><div class="strack"><i style="width:6%"></i><i class="rng" style="left:6%;width:2.7%"></i></div></div>
+        <div class="sticks"><div></div><div><span>10²</span><span>10⁴</span><span>10⁶</span><span>10⁸</span><span>10¹⁰</span></div></div>
+      </div>
+    </div>
+  </div>
+  <ul>
+    <li><mark class="g">Génomique</mark> : l'ADN humain comprend environ <mark class="y">3 milliards de paires de bases</mark> (le génome entier). <mark class="g">L'exome</mark> représente <mark class="y">1 % de ce génome, soit 3 × 10⁷ paires de bases</mark>. Les études de polymorphismes de l'ADN étudient environ <mark class="y">500 000 à 2 millions de SNP</mark>.</li>
+    <li><mark class="g">Transcriptomique</mark> : des études d'expression analysent le <mark class="p">niveau d'activité</mark> des <mark class="y">22 000 gènes</mark> de l'Homme. Ordre de grandeur bien inférieur, mais dimension malgré tout très conséquente.</li>
+    <li><mark class="g">Protéomique</mark> : sur des <mark class="g">spectrographies de masse</mark>, on <mark class="p">analyse simultanément</mark> <mark class="y">300 à 500 pics</mark>. Des mécanismes physico-chimiques permettent de sélectionner un nombre relativement restreint de peptides ou de protéines.</li>
+    <li><mark class="g">Radiomique</mark>.</li>
+  </ul>
+  <p><mark class="p">Lorsqu'on estime de nombreux paramètres</mark> d'un modèle (omics, ou plus généralement beaucoup de variables), <mark class="p">des questions spécifiques apparaissent</mark>. Importance ++ des <b>centres de données</b> pour les IA (CHU, assurance maladie) qui stockent toutes ces informations.</p>
+
+  <h3>Biomarqueurs</h3>
+  <p>En biostatistiques, un <mark class="g">biomarqueur</mark> est une variable biologique qu'on associe au <mark class="p">diagnostic</mark>, au <mark class="p">pronostic</mark> ou à la <mark class="p">réponse thérapeutique</mark>. <mark class="p">Tous les modèles utilisés sont des modèles linéaires ou qui en dérivent.</mark></p>
+  <div class="trio">
+    <div class="card"><h4>Biomarqueur diagnostique</h4><p>effet sur le risque de maladie</p></div>
+    <div class="card"><h4>Biomarqueur pronostique</h4><p>effet sur le pronostic</p></div>
+    <div class="card"><h4>Biomarqueur théranostique</h4><p>effet sur la réponse thérapeutique</p></div>
+  </div>
+  <p><mark class="p">L'effet du biomarqueur</mark> est estimé à travers la valeur du <mark class="g">paramètre β</mark> associé.</p>
+
+  <h3>Le biais d'optimisme</h3>
+  <p>Les <mark class="p"><b>études d'identification de biomarqueurs</b></mark> cherchent, parmi les variables d'intérêt, celles qui sont des biomarqueurs, et estiment leurs effets. <mark class="p">En l'absence de correction, elles sont soumises aux risques de biais</mark>, notamment au <mark class="g">biais d'optimisme</mark>, qui conduit à <mark class="p">surestimer l'effet de ces variables</mark>.</p>
+  <div class="lab">
+    <div class="lab-head"><b>Rejoue la simulation du poly</b><span>labo 11</span></div>
+    <p class="hint">Vrai effet du marqueur : β = 0,2. On répète 1 500 études pour chaque taille d'échantillon. Gris : toutes les estimations. Hachuré : seulement celles « significatives », celles que l'analyse sélectionne.</p>
+    <div class="cvw" id="wS"><canvas id="cvS" aria-label="Distributions des estimations de beta pour n = 100, 200, 400 et 1000"></canvas></div>
+    <div class="leg"><span><i class="dot" style="background:var(--muted);transform:none"></i>toutes les estimations</span><span><i class="dot" style="background:var(--warn);transform:none"></i>estimations sélectionnées (moyenne en pointillés)</span><span>trait plein : vraie valeur 0,2</span></div>
+    <div class="body">
+      <div class="tbl"><table><thead><tr><th>n</th><th>% significatifs</th><th>moy. toutes</th><th>moy. sélect.</th><th>biais</th></tr></thead><tbody id="tbS"></tbody></table></div>
+      <div class="btns"><button class="b" id="reS">Relancer la simulation</button></div>
+    </div>
+  </div>
+  <ul>
+    <li>Plus l'étude est grande, plus les estimations sont <b>proches de la vraie valeur</b>. Ce n'est pas un biais : c'est l'effet des <b>fluctuations d'échantillonnage</b>.</li>
+    <li><mark class="p">En moyenne, les estimations sont</mark> <b>non biaisées</b> : sur un très grand nombre d'études, la moyenne vaut 0,2.</li>
+    <li>La distribution hachurée, légèrement décalée vers la droite, correspond aux seules variables <b>sélectionnées par l'analyse</b> (résultats significatifs). En moyenne, elles fournissent des estimations <b>biaisées</b> : supérieures à 0,2.</li>
+    <li>Ce biais est <b>d'autant plus important que l'étude d'identification est de petite taille</b>. Il est lié au <b>mécanisme de sélection statistique</b> : c'est le <mark class="g">biais d'optimisme</mark>.</li>
+  </ul>
+  <div class="box retenir"><span class="tag">À retenir</span>Pour éviter cette surestimation, des <mark class="g">méthodes pénalisées</mark> ont été développées, parmi lesquelles les <mark class="g">méthodes LASSO, RIDGE</mark>, etc. <mark class="p">Ces méthodes rétrécissent les estimations des paramètres β</mark> pour fournir des estimations les plus proches possibles, en moyenne, des vraies valeurs.</div>
+</section>
+
+<!-- G -->
+<section id="g">
+  <div class="sec-head"><span class="letter">G</span><h2>L'évolution des modèles statistiques</h2></div>
+  <p>Une progression des plus simples aux plus flexibles :</p>
+  <div class="evo" id="evo"></div>
+  <ul>
+    <li>Les <mark class="g">modèles linéaires généralisés (GLM)</mark> regroupent les <mark class="p">approches classiques</mark> comme la <mark class="p">régression linéaire</mark> ou <mark class="p">logistique</mark>. La variable expliquée est reliée aux variables explicatives par une <b>combinaison linéaire de coefficients β</b>, avec une <b>fonction de lien</b> adaptée et une <b>distribution d'erreurs</b> correspondant au type de données.</li>
+    <li>Les <mark class="g">modèles additifs généralisés (GAM)</mark> prolongent cette logique en <mark class="p">remplaçant la combinaison linéaire</mark> par une <mark class="p">fonction plus souple</mark>. Ils modélisent des relations non linéaires et des interactions complexes grâce à des <b>fonctions de lissage</b>.</li>
+    <li><mark class="g">Les réseaux neuronaux</mark> sont une extension encore <mark class="p">plus générale</mark>. La variable à expliquer est toujours reliée aux prédicteurs, mais ceux-ci proviennent des couches successives du réseau. L'<b>avant-dernière couche</b> joue un <mark class="p">rôle équivalent</mark> à <mark class="g">la combinaison linéaire</mark> des <mark class="g">GLM</mark>, tandis que la fonction d'activation choisie dépend du type d'étude.</li>
+  </ul>
+  <div class="box retenir"><span class="tag">À retenir</span><mark class="g">L'intelligence artificielle</mark> constitue une <mark class="p">continuité de la statistique</mark> permettant de <mark class="p">capturer des relations beaucoup plus complexes</mark>.<br><br>Sur le plan de l'estimation : les statistiques <b>maximisent la vraisemblance</b>, alors que l'IA <b>minimise la log-vraisemblance négative</b> (−log L). C'est le même principe mathématique : le labo 3 montre que le maximum de L et le minimum de −log L tombent au même endroit.</div>
+  <div class="box note"><span class="tag">Précision</span>Le poly écrit « minimise la log-vraisemblance ». Rigoureusement, c'est son opposé, −log L, qu'on minimise. Minimiser log L reviendrait à chercher la pire valeur.</div>
+</section>
+
+<!-- H -->
+<section id="h">
+  <div class="sec-head"><span class="letter">H</span><h2>Conclusion</h2></div>
+  <ul>
+    <li>Modèles statistiques classiques ou réseaux d'apprentissage profond visent à fournir des <b>modèles prédictifs</b>, soit <b>de valeurs</b>, soit <b>d'états</b>.</li>
+    <li>L'analyse des propriétés des réseaux neuronaux est <b>intimement liée</b> à celle des modèles de régression classiquement utilisés.</li>
+    <li>En santé, <b>l'IA ne doit pas être une boîte noire</b> : on doit pouvoir expliquer le résultat. Les praticiens doivent avoir une connaissance minimale de ces approches pour comprendre leurs utilisations potentielles et leurs limites.</li>
+  </ul>
+  <div class="box clair"><span class="tag">Le chapitre en une phrase</span>Régression et réseau de neurones font la même chose à des degrés de souplesse différents : des paramètres (β ou poids) estimés sur des données en maximisant la vraisemblance, pour prédire chez de nouveaux patients, à évaluer sur un échantillon test.</div>
+</section>
+
+<!-- QCM -->
+<section id="qcm" class="quiz">
+  <div class="sec-head"><span class="letter">?</span><h2>Vrai ou faux : entraînement QCM</h2></div>
+  <div class="score"><span id="qScore">Score : 0 / 0</span><button class="b" id="qReset">Recommencer</button></div>
+  <div id="qList"></div>
+</section>
+
+</main>
+<footer class="wrap">D'après le poly Cours AGORA Lyon Est, UE3 Biostatistiques, chapitre 10 (p. 97 à 107). Les données des labos sont simulées pour illustrer le cours.</footer>
+
+<script>
+(function(){
+"use strict";
+var root=document.documentElement;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function C(n){return getComputedStyle(root).getPropertyValue(n).trim();}
+function $(s){return document.querySelector(s);}
+var draws=[];
+function reg(fn,el){draws.push(fn);if(el&&'ResizeObserver' in window){var w0=-1;new ResizeObserver(function(e){var w=e[0].contentRect.width;if(Math.abs(w-w0)>1){w0=w;fn();}}).observe(el);}else{fn();}}
+function redrawAll(){draws.forEach(function(f){f();});}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redrawAll);}catch(e){}
+new MutationObserver(redrawAll).observe(root,{attributes:true,attributeFilter:['data-theme']});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(redrawAll);
+window.addEventListener('resize',function(){});
+
+function prep(cv,ratio,minH,maxH){
+  var w=cv.parentElement.clientWidth||320,h=Math.round(w*ratio);
+  if(minH)h=Math.max(h,minH);if(maxH)h=Math.min(h,maxH);
+  var d=Math.min(window.devicePixelRatio||1,2.5);
+  cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.height=h+'px';
+  var ctx=cv.getContext('2d');ctx.setTransform(d,0,0,d,0,0);
+  return {ctx:ctx,w:w,h:h};
+}
+function rngF(s){return function(){s|=0;s=s+0x6D2B79F5|0;var t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){var u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function fmt(x,d){d=d||0;return Number(x).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function sgn(x,d){return (x>=0?'+':'−')+fmt(Math.abs(x),d);}
+function mono(px){return px+'px '+C('--f-mono');}
+function axes(ctx,P,o){
+  ctx.save();ctx.lineWidth=1;ctx.font=mono(10.5);
+  var grid=C('--line'),mut=C('--muted');
+  (o.xt||[]).forEach(function(v){var x=o.sx(v);ctx.strokeStyle=grid;ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,P.b);ctx.stroke();ctx.fillStyle=mut;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(o.xf?o.xf(v):String(v),x,P.b+5);});
+  (o.yt||[]).forEach(function(v){var y=o.sy(v);ctx.strokeStyle=grid;ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.r,y);ctx.stroke();ctx.fillStyle=mut;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(o.yf?o.yf(v):String(v),P.l-5,y);});
+  ctx.strokeStyle=mut;ctx.beginPath();ctx.moveTo(P.l,P.t);ctx.lineTo(P.l,P.b);ctx.lineTo(P.r,P.b);ctx.stroke();
+  ctx.fillStyle=mut;ctx.font='12px '+C('--f-body');
+  if(o.xtitle){ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(o.xtitle,(P.l+P.r)/2,P.b+20);}
+  if(o.ytitle){ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText(o.ytitle,4,P.t-6);}
+  ctx.restore();
+}
+function tween(from,to,ms,step,done){
+  if(reduce){step(to);if(done)done();return;}
+  var t0=performance.now();
+  function f(t){var k=Math.min(1,(t-t0)/ms);var e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;step(from.map(function(a,i){return a+(to[i]-a)*e;}));if(k<1)requestAnimationFrame(f);else if(done)done();}
+  requestAnimationFrame(f);
+}
+function diamond(ctx,x,y,s){ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s,y);ctx.lineTo(x,y+s);ctx.lineTo(x-s,y);ctx.closePath();}
+
+/* ---------- Labo 1 : nuage + résidus ---------- */
+var LB=function(x){return -2372.593+152.781*x;},LG=function(x){return -2764.187+152.781*x;};
+var ptsA=[];
+(function(){
+  var r=rngF(11),ages=[36,38,38,38,39,39,39,39,40,40,40,40,40,40,40,40,41,41,41,41,41,41,43];
+  [['B',LB],['G',LG]].forEach(function(g){ages.forEach(function(a){var y=g[1](a)+gauss(r)*430;y=Math.max(2350,Math.min(5300,y));ptsA.push({s:g[0],a:a,j:(r()-.5)*.36,y:Math.round(y/10)*10,mu:g[1](a)});});});
+  var cv=$('#cvA'),out=$('#readA'),tog=$('#togA'),showAll=false,geo=null;
+  var sel=0;for(var i=0;i<ptsA.length;i++){if(ptsA[i].s==='B'&&ptsA[i].a===38){sel=i;break;}}
+  function draw(){
+    var o=prep(cv,.7,260,430),ctx=o.ctx,w=o.w,h=o.h;
+    var P={l:46,r:w-12,t:26,b:h-40};
+    var sx=function(v){return P.l+(v-35.5)/8*(P.r-P.l);},sy=function(v){return P.b-(v-2200)/3200*(P.b-P.t);};
+    geo={sx:sx,sy:sy};
+    ctx.clearRect(0,0,w,h);
+    axes(ctx,P,{sx:sx,sy:sy,xt:[36,37,38,39,40,41,42,43],yt:[2500,3000,3500,4000,4500,5000],yf:function(v){return fmt(v);},xtitle:'Âge gestationnel (SA)',ytitle:'Poids de naissance (g)'});
+    ctx.save();ctx.beginPath();ctx.rect(P.l,P.t,P.r-P.l,P.b-P.t);ctx.clip();
+    [[LB,'--boy'],[LG,'--girl']].forEach(function(L){ctx.strokeStyle=C(L[1]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(35.5),sy(L[0](35.5)));ctx.lineTo(sx(43.5),sy(L[0](43.5)));ctx.stroke();});
+    ptsA.forEach(function(p,i){
+      var x=sx(p.a+p.j),y=sy(p.y),col=C(p.s==='B'?'--boy':'--girl');
+      if(showAll||i===sel){ctx.strokeStyle=col;ctx.globalAlpha=i===sel?1:.6;ctx.lineWidth=i===sel?2.2:1;ctx.setLineDash(i===sel?[]:[3,3]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,sy(p.mu));ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;}
+    });
+    ptsA.forEach(function(p,i){
+      var x=sx(p.a+p.j),y=sy(p.y),col=C(p.s==='B'?'--boy':'--girl');
+      ctx.fillStyle=col;diamond(ctx,x,y,i===sel?6.5:4.3);ctx.fill();
+      if(i===sel){ctx.strokeStyle=C('--ink');ctx.lineWidth=1.5;ctx.stroke();
+        ctx.fillStyle=C('--surface');ctx.beginPath();ctx.arc(x,sy(p.mu),4.5,0,7);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();
+        ctx.fillStyle=C('--ink');ctx.font='600 12px '+C('--f-mono');ctx.textBaseline='middle';
+        var lab='e = '+sgn(p.y-p.mu)+' g',tw=ctx.measureText(lab).width,lx=x+10;if(lx+tw>P.r-2)lx=x-10-tw;
+        ctx.textAlign='left';ctx.fillText(lab,lx,(y+sy(p.mu))/2);}
+    });
+    ctx.restore();
+    var p=ptsA[sel],e=p.y-p.mu;
+    out.innerHTML='<b>'+(p.s==='B'?'Garçon':'Fille')+', '+p.a+' SA</b> · observé y = '+fmt(p.y)+' g · prédit μ = '+fmt(p.mu)+' g (point blanc) → <mark class="g">résidu e = y − μ = '+sgn(e)+' g</mark>';
+  }
+  cv.addEventListener('pointerdown',function(ev){
+    if(!geo)return;var rc=cv.getBoundingClientRect(),mx=ev.clientX-rc.left,my=ev.clientY-rc.top,best=-1,bd=900;
+    ptsA.forEach(function(p,i){var dx=geo.sx(p.a+p.j)-mx,dy=geo.sy(p.y)-my,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}});
+    if(best>=0){sel=best;draw();}
+  });
+  tog.addEventListener('click',function(){showAll=!showAll;tog.setAttribute('aria-pressed',showAll);tog.textContent=showAll?'Masquer les résidus':'Afficher tous les résidus';draw();});
+  reg(draw,$('#wA'));
+
+  /* Labo 4 : variance */
+  var m=ptsA.reduce(function(s,p){return s+p.y;},0)/ptsA.length,tot=0,res=0;
+  ptsA.forEach(function(p){tot+=Math.pow(p.y-m,2);res+=Math.pow(p.y-p.mu,2);});
+  var R2=Math.max(0,Math.min(1,1-res/tot));
+  var ve=$('#vExp');ve.style.width=(R2*100).toFixed(1)+'%';ve.textContent=Math.round(R2*100)+' %';
+  $('#vRes').textContent='résiduelle '+Math.round((1-R2)*100)+' %';
+})();
+
+/* ---------- Labo 2 : moindres carrés ---------- */
+(function(){
+  var D=[[1,2.6],[2,3.1],[3,4.9],[4,4.6],[5,6.5],[6,6.4],[7,8.1],[8,8.3]];
+  var n=D.length,mx=0,my=0;D.forEach(function(d){mx+=d[0]/n;my+=d[1]/n;});
+  var sxy=0,sxx=0;D.forEach(function(d){sxy+=(d[0]-mx)*(d[1]-my);sxx+=Math.pow(d[0]-mx,2);});
+  var B1=sxy/sxx,B0=my-B1*mx;
+  function sse(b0,b1){return D.reduce(function(s,d){return s+Math.pow(d[1]-b0-b1*d[0],2);},0);}
+  var SMIN=sse(B0,B1),b0=1.2,b1=0.35;
+  var cv=$('#cvB'),i0=$('#b0'),i1=$('#b1');
+  $('#rMin').textContent=fmt(SMIN,2);
+  function sync(){i0.value=b0;i1.value=b1;$('#ob0').textContent=fmt(b0,2);$('#ob1').textContent=fmt(b1,2);}
+  function draw(){
+    var o=prep(cv,.72,250,400),ctx=o.ctx,w=o.w,h=o.h;
+    var P={l:34,r:w-12,t:24,b:h-40};
+    var sx=function(v){return P.l+v/9*(P.r-P.l);},sy=function(v){return P.b-(v+1)/13*(P.b-P.t);};
+    ctx.clearRect(0,0,w,h);
+    axes(ctx,P,{sx:sx,sy:sy,xt:[0,1,2,3,4,5,6,7,8,9],yt:[0,2,4,6,8,10,12],xtitle:'x (variable explicative)',ytitle:'y (variable expliquée)'});
+    ctx.save();ctx.beginPath();ctx.rect(P.l,P.t,P.r-P.l,P.b-P.t);ctx.clip();
+    var se=0,s2=0;
+    D.forEach(function(d){
+      var mu=b0+b1*d[0],e=d[1]-mu;se+=e;s2+=e*e;
+      var x=sx(d[0]),yo=sy(d[1]),ym=sy(mu),side=Math.abs(yo-ym),top=Math.min(yo,ym);
+      var left=(x+side<=P.r-2)?x:x-side;
+      ctx.fillStyle=C('--accent');ctx.globalAlpha=.13;ctx.fillRect(left,top,side,side);ctx.globalAlpha=.55;ctx.strokeStyle=C('--accent');ctx.lineWidth=1;ctx.strokeRect(left,top,side,side);ctx.globalAlpha=1;
+      ctx.strokeStyle=C(e>=0?'--green':'--warn');ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x,yo);ctx.lineTo(x,ym);ctx.stroke();
+    });
+    ctx.strokeStyle=C('--ink');ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(sx(0),sy(b0));ctx.lineTo(sx(9),sy(b0+9*b1));ctx.stroke();
+    D.forEach(function(d){ctx.fillStyle=C('--ink');ctx.beginPath();ctx.arc(sx(d[0]),sy(d[1]),4.5,0,7);ctx.fill();});
+    ctx.restore();
+    $('#rSe').textContent=sgn(se,2);$('#rS2').textContent=fmt(s2,2);
+    var msg;
+    if(Math.abs(se)<0.06&&s2>SMIN*1.25)msg='Σ e<sub>i</sub> ≈ 0 alors que la droite est mauvaise : les écarts positifs (verts) et négatifs (orange) s\'annulent. C\'est pour ça qu\'on élève au carré.';
+    else if(s2<=SMIN*1.002)msg='<mark class="p">Minimum atteint</mark> : c\'est la droite des moindres carrés, β̂<sub>0</sub> = '+fmt(B0,2)+' et β̂<sub>1</sub> = '+fmt(B1,2)+'. La solution est unique.';
+    else msg='Surface totale des carrés : '+fmt(s2/SMIN*100,0)+' % du minimum. Bouge β̂<sub>0</sub> et β̂<sub>1</sub> pour la réduire.';
+    $('#msgB').innerHTML=msg;
+  }
+  function go(t0,t1){tween([b0,b1],[t0,t1],900,function(v){b0=v[0];b1=v[1];sync();draw();});}
+  i0.addEventListener('input',function(){b0=+i0.value;sync();draw();});
+  i1.addEventListener('input',function(){b1=+i1.value;sync();draw();});
+  $('#fitB').addEventListener('click',function(){go(B0,B1);});
+  $('#flatB').addEventListener('click',function(){go(my,0);});
+  $('#rndB').addEventListener('click',function(){go(Math.round((Math.random()*7-1)*20)/20,Math.round((Math.random()*1.8-.4)*100)/100);});
+  sync();reg(draw,$('#wB'));
+})();
+
+/* ---------- Labo 3 : vraisemblance ---------- */
+(function(){
+  var Y=[3100,3400,3500,3700,4000],S=300,M=Y.reduce(function(a,b){return a+b;},0)/Y.length;
+  var cv=$('#cvL'),inp=$('#mu'),mu=3200;
+  function ss(m){return Y.reduce(function(s,y){return s+Math.pow(y-m,2);},0);}
+  function relL(m){return Math.exp(-(ss(m)-ss(M))/(2*S*S));}
+  $('#rMean').textContent=fmt(M)+' g';
+  function draw(){
+    var o=prep(cv,.85,330,520),ctx=o.ctx,w=o.w,h=o.h;ctx.clearRect(0,0,w,h);
+    var mid=Math.round(h*.52);
+    var P1={l:40,r:w-12,t:26,b:mid-28},P2={l:40,r:w-12,t:mid+20,b:h-40};
+    var sx1=function(v){return P1.l+(v-2500)/2100*(P1.r-P1.l);};
+    var sy1=function(v){return P1.b-v*(P1.b-P1.t);};
+    axes(ctx,P1,{sx:sx1,sy:sy1,xt:[2500,3000,3500,4000,4500],xf:function(v){return fmt(v);},ytitle:'Densité si μ = '+fmt(mu)+' g'});
+    ctx.save();ctx.beginPath();ctx.rect(P1.l,P1.t-4,P1.r-P1.l,P1.b-P1.t+4);ctx.clip();
+    ctx.beginPath();for(var x=2500;x<=4600;x+=10){var f=Math.exp(-Math.pow(x-mu,2)/(2*S*S))*.92;var X=sx1(x),Yp=sy1(f);if(x===2500)ctx.moveTo(X,Yp);else ctx.lineTo(X,Yp);}
+    ctx.strokeStyle=C('--accent');ctx.lineWidth=2;ctx.stroke();ctx.lineTo(sx1(4600),P1.b);ctx.lineTo(sx1(2500),P1.b);ctx.closePath();ctx.fillStyle=C('--accent');ctx.globalAlpha=.1;ctx.fill();ctx.globalAlpha=1;
+    Y.forEach(function(y){var f=Math.exp(-Math.pow(y-mu,2)/(2*S*S))*.92,X=sx1(y);ctx.strokeStyle=C('--ink');ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(X,P1.b);ctx.lineTo(X,sy1(f));ctx.stroke();ctx.fillStyle=C('--ink');ctx.beginPath();ctx.arc(X,sy1(f),3.5,0,7);ctx.fill();ctx.fillStyle=C('--girl');diamond(ctx,X,P1.b,5);ctx.fill();});
+    ctx.restore();
+    var sx2=function(v){return P2.l+(v-2500)/2100*(P2.r-P2.l);},sy2=function(v){return P2.b-v*.92*(P2.b-P2.t);};
+    axes(ctx,P2,{sx:sx2,sy:sy2,xt:[2500,3000,3500,4000,4500],xf:function(v){return fmt(v);},xtitle:'Valeur testée de μ (g)',ytitle:'Vraisemblance L(μ)'});
+    ctx.beginPath();for(var m=2500;m<=4600;m+=10){var X2=sx2(m),Y2=sy2(relL(m));if(m===2500)ctx.moveTo(X2,Y2);else ctx.lineTo(X2,Y2);}
+    ctx.strokeStyle=C('--ink');ctx.lineWidth=2;ctx.stroke();
+    ctx.setLineDash([4,4]);ctx.strokeStyle=C('--muted');ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx2(M),P2.t);ctx.lineTo(sx2(M),P2.b);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=C('--muted');ctx.font=mono(10.5);ctx.textAlign=sx2(M)>P2.r-90?'right':'left';ctx.textBaseline='top';ctx.fillText(' max : μ̂ = '+fmt(M),sx2(M)+(ctx.textAlign==='right'?-4:2),P2.t-2);
+    ctx.fillStyle=C('--accent');ctx.beginPath();ctx.arc(sx2(mu),sy2(relL(mu)),6,0,7);ctx.fill();ctx.strokeStyle=C('--surface');ctx.lineWidth=2;ctx.stroke();
+    $('#omu').textContent=fmt(mu)+' g';$('#rL').textContent=fmt(relL(mu)*100,1)+' %';$('#rSS').textContent=fmt(ss(mu));
+    var d=Math.abs(mu-M);
+    $('#msgL').innerHTML=d<=5?'<mark class="p">Vraisemblance maximale</mark> pour μ̂ = '+fmt(M)+' g : c\'est la moyenne, qui est aussi la valeur qui rend Σ(y<sub>i</sub> − μ)² minimale. Modèle linéaire : mêmes estimations par les deux méthodes.':(mu<M?'Cloche trop à gauche : les bébés lourds tombent sur des valeurs peu probables.':'Cloche trop à droite : les bébés légers tombent sur des valeurs peu probables.');
+  }
+  inp.value=mu;
+  inp.addEventListener('input',function(){mu=+inp.value;draw();});
+  $('#maxL').addEventListener('click',function(){tween([mu],[M],800,function(v){mu=v[0];inp.value=mu;draw();});});
+  reg(draw,$('#wL'));
+})();
+
+/* ---------- Labo 5 : perceptron ---------- */
+(function(){
+  var pts=[[-3.5,1.5],[-2,2.8],[-1,3.5],[0.5,2.5],[1.5,3.8],[2.5,4.2],[3.5,4.5],[-4,-0.8],[-1.5,0.5],[1,2.2]].map(function(p){return {x:p[0],y:p[1],c:1};})
+    .concat([[2,0.5],[3,1],[4,2],[4.2,0.2],[1,-1.5],[3.5,-2.5],[-0.5,-2],[2.5,-0.8],[4.5,3.2],[0,-0.8]].map(function(p){return {x:p[0],y:p[1],c:0};}));
+  var W={w0:0,w1:1,w2:1,th:0},cv=$('#cvP'),hl=null,timer=null,steps=0;
+  var ids={w0:'pw0',w1:'pw1',w2:'pw2',th:'pth'};
+  function z(p){return W.w0+W.w1*p.x+W.w2*p.y-W.th;}
+  function pred(p){return z(p)>=0?1:0;}
+  function sync(){Object.keys(ids).forEach(function(k){$('#'+ids[k]).value=W[k];$('#o'+ids[k]).textContent=fmt(W[k],2);});}
+  function draw(){
+    var o=prep(cv,.85,280,420),ctx=o.ctx,w=o.w,h=o.h;ctx.clearRect(0,0,w,h);
+    var size=Math.min(w-40,h-36),P={l:(w-size)/2+10,t:18};P.r=P.l+size;P.b=P.t+size;
+    var sx=function(v){return P.l+(v+5)/10*size;},sy=function(v){return P.b-(v+5)/10*size;};
+    var cb=C('--blue'),cg=C('--green');
+    for(var px=P.l;px<P.r;px+=6){for(var py=P.t;py<P.b;py+=6){var X=(px+3-P.l)/size*10-5,Yv=(P.b-py-3)/size*10-5;ctx.fillStyle=(W.w0+W.w1*X+W.w2*Yv-W.th)>=0?cb:cg;ctx.globalAlpha=.1;ctx.fillRect(px,py,6,6);}}
+    ctx.globalAlpha=1;
+    axes(ctx,P,{sx:sx,sy:sy,xt:[-4,-2,0,2,4],yt:[-4,-2,0,2,4]});
+    ctx.strokeStyle=C('--muted');ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(sx(0),P.t);ctx.lineTo(sx(0),P.b);ctx.moveTo(P.l,sy(0));ctx.lineTo(P.r,sy(0));ctx.stroke();
+    ctx.fillStyle=C('--muted');ctx.font=mono(11);ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText('X₁',P.r-3,sy(0)-3);ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('X₂',sx(0)+5,P.t+3);
+    ctx.save();ctx.beginPath();ctx.rect(P.l,P.t,size,size);ctx.clip();
+    ctx.strokeStyle=C('--warn');ctx.lineWidth=3;ctx.beginPath();
+    if(Math.abs(W.w2)>1e-6){var a=(W.th-W.w0)/W.w2,s=-W.w1/W.w2;ctx.moveTo(sx(-5),sy(a+s*-5));ctx.lineTo(sx(5),sy(a+s*5));ctx.stroke();
+      ctx.fillStyle=C('--surface');ctx.beginPath();ctx.arc(sx(0),sy(a),5,0,7);ctx.fill();ctx.strokeStyle=C('--warn');ctx.lineWidth=2;ctx.stroke();}
+    else if(Math.abs(W.w1)>1e-6){var xv=(W.th-W.w0)/W.w1;ctx.moveTo(sx(xv),P.t);ctx.lineTo(sx(xv),P.b);ctx.stroke();}
+    var ok=0;
+    pts.forEach(function(p){var X=sx(p.x),Yp=sy(p.y),good=pred(p)===p.c;if(good)ok++;
+      ctx.fillStyle=p.c?cb:cg;ctx.beginPath();ctx.arc(X,Yp,7,0,7);ctx.fill();
+      if(!good){ctx.strokeStyle=C('--ink');ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Yp,11,0,7);ctx.stroke();}
+      if(hl===p){ctx.strokeStyle=C('--warn');ctx.lineWidth=3;ctx.beginPath();ctx.arc(X,Yp,14,0,7);ctx.stroke();}
+    });
+    ctx.restore();
+    $('#rInt').textContent=Math.abs(W.w2)>1e-6?fmt((W.th-W.w0)/W.w2,2):'∞ (w₂ = 0)';
+    $('#rSlope').textContent=Math.abs(W.w2)>1e-6?fmt(-W.w1/W.w2,2):'verticale';
+    $('#rOk').textContent=ok+' / '+pts.length;
+    return ok;
+  }
+  function msg(t){$('#msgP').innerHTML=t;}
+  function stop(){if(timer){clearTimeout(timer);timer=null;}$('#learnP').textContent='Lancer l\'apprentissage';}
+  function step(){
+    var errs=pts.filter(function(p){return pred(p)!==p.c;});
+    if(!errs.length){hl=null;draw();msg('<mark class="p">Tous les points sont bien classés</mark> après '+steps+' correction'+(steps>1?'s':'')+' des poids. Le perceptron a appris des données.');stop();return false;}
+    if(steps>=400){msg('Arrêt après 400 corrections.');stop();return false;}
+    var p=errs[Math.floor(Math.random()*errs.length)],e=p.c-pred(p),eta=.15;
+    W.w0=Math.max(-10,Math.min(10,W.w0+eta*e));W.w1=Math.max(-5,Math.min(5,W.w1+eta*e*p.x));W.w2=Math.max(-5,Math.min(5,W.w2+eta*e*p.y));
+    steps++;hl=p;sync();draw();
+    msg('Correction n° '+steps+' : le point entouré est mal classé, on ajuste les poids dans sa direction (w ← w + 0,15 × erreur × X).');
+    return true;
+  }
+  $('#learnP').addEventListener('click',function(){
+    if(timer){stop();return;}
+    steps=0;
+    if(reduce){while(step()){} return;}
+    $('#learnP').textContent='Arrêter';
+    (function loop(){if(step())timer=setTimeout(loop,260);})();
+  });
+  $('#randP').addEventListener('click',function(){stop();hl=null;W.w0=Math.round((Math.random()*6-3)*20)/20;W.w1=Math.round((Math.random()*4-2)*20)/20;W.w2=Math.round((Math.random()*3+.5)*(Math.random()<.5?-1:1)*20)/20;W.th=Math.round((Math.random()*4-2)*20)/20;sync();draw();msg('Poids initiaux aléatoires, comme au début d\'un apprentissage.');});
+  Object.keys(ids).forEach(function(k){$('#'+ids[k]).addEventListener('input',function(e){stop();hl=null;W[k]=+e.target.value;sync();draw();msg('');});});
+  sync();reg(draw,$('#wP'));
+  msg('Départ : w₁ = 1, w₂ = 1, b = 0, θ = 0. Plusieurs points sont mal classés.');
+})();
+
+/* ---------- Labo 6 : activations ---------- */
+(function(){
+  var F={
+    heav:{n:'Heaviside',f:function(z){return z>=0?1:0;},y:[-.25,1.25],yt:[0,1],eq:'H(z) = 1 si z ≥ 0, sinon 0',t:'Sortie booléenne (0 ou 1), courbe en marche d\'escalier. Utilisée avec les perceptrons monocouches.'},
+    relu:{n:'ReLU',f:function(z){return Math.max(0,z);},y:[-.6,4.2],yt:[0,1,2,3,4],eq:'H(z) = max(0, z)    R → [0 ; +∞[',t:'Affine par morceaux : 0 si z est négatif, z sinon. Pas bornée en haut. Très utilisée pour les couches intermédiaires.'},
+    tanh:{n:'tanh',f:function(z){return Math.tanh(z);},y:[-1.25,1.25],yt:[-1,0,1],eq:'H(z) = tanh(z)    R → [−1 ; 1]',t:'Tangente hyperbolique : continue, en S, centrée sur 0.'},
+    sig:{n:'Sigmoïde',f:function(z){return 1/(1+Math.exp(-z));},y:[-.25,1.25],yt:[0,.5,1],eq:'H(z) = 1 / (1 + exp(−z))    R → [0 ; 1]',t:'Fonction logistique : continue, en S, sortie entre 0 et 1. La softmax en est l\'extension à plusieurs sorties.'}
+  };
+  var cur='heav',cv=$('#cvAct'),zi=$('#zA'),tabs=$('#actTabs');
+  Object.keys(F).forEach(function(k){var b=document.createElement('button');b.className='b';b.textContent=F[k].n;b.setAttribute('aria-pressed',k===cur);b.addEventListener('click',function(){cur=k;[].forEach.call(tabs.children,function(c){c.setAttribute('aria-pressed',c===b);});draw();});tabs.appendChild(b);});
+  function draw(){
+    var o=prep(cv,.55,200,300),ctx=o.ctx,w=o.w,h=o.h,fn=F[cur],zz=+zi.value;ctx.clearRect(0,0,w,h);
+    var P={l:38,r:w-12,t:14,b:h-34};
+    var sx=function(v){return P.l+(v+4)/8*(P.r-P.l);},sy=function(v){return P.b-(v-fn.y[0])/(fn.y[1]-fn.y[0])*(P.b-P.t);};
+    axes(ctx,P,{sx:sx,sy:sy,xt:[-4,-3,-2,-1,0,1,2,3,4],yt:fn.yt,yf:function(v){return fmt(v,v%1?1:0);},xtitle:'z'});
+    ctx.strokeStyle=C('--muted');ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx(0),P.t);ctx.lineTo(sx(0),P.b);ctx.stroke();
+    ctx.strokeStyle=C('--accent');ctx.lineWidth=3;ctx.beginPath();
+    if(cur==='heav'){ctx.moveTo(sx(-4),sy(0));ctx.lineTo(sx(0),sy(0));ctx.moveTo(sx(0),sy(1));ctx.lineTo(sx(4),sy(1));ctx.stroke();ctx.setLineDash([3,3]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx(0),sy(0));ctx.lineTo(sx(0),sy(1));ctx.stroke();ctx.setLineDash([]);}
+    else{for(var z=-4;z<=4.001;z+=.04){var X=sx(z),Yp=sy(fn.f(z));if(z===-4)ctx.moveTo(X,Yp);else ctx.lineTo(X,Yp);}ctx.stroke();}
+    var hz=fn.f(zz);
+    ctx.setLineDash([4,4]);ctx.strokeStyle=C('--warn');ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(sx(zz),P.b);ctx.lineTo(sx(zz),sy(hz));ctx.lineTo(P.l,sy(hz));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=C('--warn');ctx.beginPath();ctx.arc(sx(zz),sy(hz),6,0,7);ctx.fill();
+    $('#ozA').textContent=fmt(zz,2)+'  →  H(z) = '+fmt(hz,cur==='heav'?0:3);
+    $('#actF').textContent=fn.eq;$('#actT').textContent=fn.t;
+  }
+  zi.addEventListener('input',draw);
+  reg(draw,$('#wAct'));
+})();
+
+/* ---------- Labo 7 : softmax ---------- */
+(function(){
+  var names=['Diagnostic A','Diagnostic B','Diagnostic C'],zs=[2,1,-0.5],box=$('#smC'),bars=$('#smBars');
+  function render(){
+    var ex=zs.map(Math.exp),s=ex.reduce(function(a,b){return a+b;},0);
+    bars.innerHTML=names.map(function(n,i){var p=ex[i]/s*100;return '<div><div style="display:flex;justify-content:space-between;font-size:14px"><span>'+n+'</span><b style="font-family:var(--f-mono)">'+fmt(p,1)+' %</b></div><div style="height:10px;background:var(--sunk);border-radius:5px;overflow:hidden"><i style="display:block;height:100%;width:'+p.toFixed(1)+'%;background:var(--accent)"></i></div></div>';}).join('')+'<div style="font-family:var(--f-mono);font-size:12.5px;color:var(--muted)">Total = 100 %</div>';
+  }
+  names.forEach(function(n,i){var d=document.createElement('div');d.className='ctrl';d.innerHTML='<label for="sm'+i+'">Score z<sub>'+(i+1)+'</sub> <output id="osm'+i+'">'+fmt(zs[i],1)+'</output></label><input type="range" id="sm'+i+'" min="-3" max="3" step="0.1" value="'+zs[i]+'">';box.appendChild(d);
+    d.querySelector('input').addEventListener('input',function(e){zs[i]=+e.target.value;$('#osm'+i).textContent=fmt(zs[i],1);render();});});
+  render();
+})();
+
+/* ---------- Labo 8 : continuité ---------- */
+(function(){
+  var wi=$('#wC'),box=$('#contBars');
+  function render(){
+    var w=+wi.value,z=4*w-2,hv=z>=0?1:0,sg=1/(1+Math.exp(-z));
+    $('#owC').textContent=fmt(w,2)+'  (z = '+fmt(z,2)+')';
+    box.innerHTML=[['Heaviside',hv,0],['Sigmoïde',sg,3]].map(function(r){return '<div><div style="display:flex;justify-content:space-between;font-size:14px"><span>'+r[0]+'</span><b style="font-family:var(--f-mono)">H = '+fmt(r[1],r[2])+'</b></div><div style="height:12px;background:var(--sunk);border-radius:6px;overflow:hidden"><i style="display:block;height:100%;width:'+(r[1]*100).toFixed(1)+'%;background:'+(r[0]==='Heaviside'?'var(--warn)':'var(--accent)')+';transition:width .15s"></i></div></div>';}).join('');
+  }
+  wi.addEventListener('input',render);render();
+})();
+
+/* ---------- Labo 9 : réseau animé ---------- */
+(function(){
+  var L=[4,4,4,4,2],cv=$('#cvN'),mode='fwd',playing=!reduce,visible=true,T=0,last=null,dims=null,SEG=.75;
+  var caps={fwd:'Propagation avant : chaque couche J reçoit les signaux de J−1 et transmet à J+1.',rec:'Réseau récurrent : en plus, des boucles d\'activation renvoient le signal vers la même couche et vers la couche J−1.',bp:'Apprentissage : le signal avance (bleu), on mesure l\'erreur en sortie, puis on corrige les poids de la dernière couche jusqu\'à la première (rétropropagation, orange).'};
+  function resize(){dims=prep(cv,.6,220,340);drawFrame();}
+  function pos(){var w=dims.w,h=dims.h,xs=L.map(function(_,i){return 34+i*(w-68)/(L.length-1);});var gap=Math.min(48,(h-60)/3.4);
+    return L.map(function(n,i){var top=(h-26)/2-gap*(n-1)/2;var a=[];for(var k=0;k<n;k++)a.push({x:xs[i],y:top+k*gap});return a;});}
+  function cycleLen(){return mode==='bp'?(4*SEG*2+1.2):(4*SEG+.7);}
+  function drawFrame(){
+    if(!dims)return;var ctx=dims.ctx,w=dims.w,h=dims.h;ctx.clearRect(0,0,w,h);
+    var N=pos(),acc=C('--accent'),warn=C('--warn'),girl=C('--girl'),r=Math.min(13,w/34);
+    var bands=[[0,0,C('--blue'),'Entrée'],[1,3,C('--girl'),'Couches cachées'],[4,4,C('--blue'),'Sortie']];
+    bands.forEach(function(b){var x0=N[b[0]][0].x-r-8,x1=N[b[1]][0].x+r+8;ctx.fillStyle=b[2];ctx.globalAlpha=.07;ctx.fillRect(x0,6,x1-x0,h-12);ctx.globalAlpha=1;ctx.fillStyle=C('--muted');ctx.font='11.5px '+C('--f-body');ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(b[3],(x0+x1)/2,h-6);});
+    ctx.strokeStyle=C('--line');ctx.lineWidth=1;
+    for(var l=0;l<L.length-1;l++)N[l].forEach(function(a){N[l+1].forEach(function(b){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();});});
+    var t=T%cycleLen(),seg=Math.floor(t/SEG),p=(t%SEG)/SEG,phase='fwd',lit=-1;
+    if(mode==='bp'&&t>=4*SEG+.6){var tb=t-(4*SEG+.6);seg=Math.floor(tb/SEG);p=(tb%SEG)/SEG;phase='back';}
+    if(mode==='rec'){
+      ctx.strokeStyle=girl;ctx.lineWidth=1.3;
+      for(var l2=1;l2<=3;l2++)N[l2].forEach(function(a,k){ctx.beginPath();ctx.arc(a.x,a.y-r-6,6,0,Math.PI*2);ctx.stroke();
+        if(k<N[l2].length-1){ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(a.x+r*.7,a.y+r*.7);ctx.quadraticCurveTo(a.x+r+14,(a.y+N[l2][k+1].y)/2,N[l2][k+1].x+r*.7,N[l2][k+1].y-r*.7);ctx.stroke();ctx.setLineDash([]);}
+        var b=N[l2-1][k]||N[l2-1][0];ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(a.x-r,a.y+3);ctx.quadraticCurveTo((a.x+b.x)/2,a.y+24,b.x+r,b.y+5);ctx.stroke();ctx.setLineDash([]);});
+    }
+    if(seg<4){
+      var from=phase==='fwd'?seg:4-seg,to=phase==='fwd'?seg+1:3-seg;
+      lit=p>.85?to:from;
+      ctx.fillStyle=phase==='fwd'?acc:warn;
+      N[from].forEach(function(a){N[to].forEach(function(b){ctx.beginPath();ctx.arc(a.x+(b.x-a.x)*p,a.y+(b.y-a.y)*p,3,0,7);ctx.fill();});});
+      if(mode==='rec'&&from>=1&&from<=3){ctx.fillStyle=girl;N[from].forEach(function(a){var ang=-Math.PI/2+p*Math.PI*2;ctx.beginPath();ctx.arc(a.x+6*Math.cos(ang),a.y-r-6+6*Math.sin(ang),2.6,0,7);ctx.fill();});}
+    } else if(mode==='bp'&&phase==='fwd'){lit=4;}
+    N.forEach(function(layer,li){layer.forEach(function(a){ctx.beginPath();ctx.arc(a.x,a.y,r,0,7);ctx.fillStyle=C('--surface');ctx.fill();
+      if(li===lit){ctx.fillStyle=phase==='fwd'?acc:warn;ctx.globalAlpha=.55;ctx.fill();ctx.globalAlpha=1;}
+      ctx.strokeStyle=li===lit?(phase==='fwd'?acc:warn):C('--muted');ctx.lineWidth=1.6;ctx.stroke();});});
+    ctx.fillStyle=C('--ink');ctx.font='600 11px '+C('--f-mono');ctx.textAlign='center';ctx.textBaseline='middle';
+    ['X₁','X₂','Xᵢ','X_I'].forEach(function(s,k){ctx.fillText(k===3?'X':s,N[0][k].x,N[0][k].y);});
+    if(mode==='bp'&&phase==='fwd'&&seg>=4){ctx.fillStyle=warn;ctx.font='600 12px '+C('--f-body');ctx.textAlign='right';ctx.fillText('erreur ?',w-6,N[4][0].y-r-12);}
+  }
+  function loop(now){
+    if(last===null)last=now;var dt=Math.min(.05,(now-last)/1000);last=now;
+    if(playing&&visible){T+=dt;drawFrame();}
+    requestAnimationFrame(loop);
+  }
+  if('IntersectionObserver' in window)new IntersectionObserver(function(e){visible=e[0].isIntersecting;}).observe(cv);
+  [].forEach.call(document.querySelectorAll('[data-mode]'),function(b){b.addEventListener('click',function(){mode=b.dataset.mode;T=0;[].forEach.call(document.querySelectorAll('[data-mode]'),function(c){c.setAttribute('aria-pressed',c===b);});$('#capN').textContent=caps[mode];if(!playing){T=SEG*1.5;}drawFrame();});});
+  var pb=$('#playN');
+  function lab(){pb.textContent=playing?'Pause':'Lancer l\'animation';}
+  pb.addEventListener('click',function(){playing=!playing;lab();});
+  $('#capN').textContent=caps[mode];
+  if(!playing)T=SEG*1.5;lab();
+  reg(resize,$('#wN'));
+  requestAnimationFrame(loop);
+})();
+
+/* ---------- Labo 10 : performances ---------- */
+(function(){
+  var ins=['cVP','cFN','cFP','cVN'].map(function(i){return $('#'+i);}),box=$('#metrics');
+  function pc(a,b){return b>0?a/b:NaN;}
+  function show(v){return isNaN(v)?'—':fmt(v*100,1)+' %';}
+  function render(){
+    var v=ins.map(function(i){return Math.max(0,Math.round(+i.value||0));}),VP=v[0],FN=v[1],FP=v[2],VN=v[3];
+    var ex=pc(VP+VN,VP+VN+FP+FN),se=pc(VP,VP+FN),pr=pc(VP,VP+FP),sp=pc(VN,VN+FP),f1=(se+pr)>0?2*pr*se/(pr+se):NaN;
+    var rows=[['Exactitude','',ex,'('+VP+' + '+VN+') / ('+VP+' + '+VN+' + '+FP+' + '+FN+')'],
+      ['Rappel',' = sensibilité',se,VP+' / ('+VP+' + '+FN+')'],
+      ['Précision',' = VPP',pr,VP+' / ('+VP+' + '+FP+')'],
+      ['Spécificité','',sp,VN+' / ('+VN+' + '+FP+')'],
+      ['Score F1',' moyenne harmonique',f1,'2 × '+(isNaN(pr)?'—':fmt(pr,3))+' × '+(isNaN(se)?'—':fmt(se,3))+' / ('+(isNaN(pr)?'—':fmt(pr,3))+' + '+(isNaN(se)?'—':fmt(se,3))+')']];
+    box.innerHTML=rows.map(function(r){return '<div class="metric"><span class="nm">'+r[0]+'<small>'+r[1]+'</small></span><span class="v">'+show(r[2])+'</span><span class="fx">'+r[3]+'</span><span class="bar"><i style="width:'+(isNaN(r[2])?0:r[2]*100).toFixed(1)+'%"></i></span></div>';}).join('');
+  }
+  ins.forEach(function(i){i.addEventListener('input',render);});render();
+})();
+
+/* ---------- Labo 11 : biais d'optimisme ---------- */
+(function(){
+  var Ns=[100,200,400,1000],seed=3,sims=null,cv=$('#cvS');
+  function simulate(){var r=rngF(seed);sims=Ns.map(function(n){var se=1.5/Math.sqrt(n),all=[],sel=[];for(var k=0;k<1500;k++){var b=.2+se*gauss(r);all.push(b);if(Math.abs(b/se)>1.96)sel.push(b);}return {n:n,all:all,sel:sel};});
+    $('#tbS').innerHTML=sims.map(function(s){var ma=s.all.reduce(function(a,b){return a+b;},0)/s.all.length,ms=s.sel.length?s.sel.reduce(function(a,b){return a+b;},0)/s.sel.length:NaN;
+      return '<tr><td>'+fmt(s.n)+'</td><td>'+fmt(s.sel.length/s.all.length*100,0)+' %</td><td>'+fmt(ma,3)+'</td><td>'+fmt(ms,3)+'</td><td class="bias">'+sgn(ms-.2,3)+'</td></tr>';}).join('');}
+  function hist(arr){var b=new Array(40).fill(0);arr.forEach(function(v){var i=Math.floor((v+.6)/.04);if(i>=0&&i<40)b[i]++;});return b;}
+  function draw(){
+    var o=prep(cv,0,360,360),ctx=o.ctx,w=o.w,h=o.h;ctx.clearRect(0,0,w,h);
+    var l=62,r=w-12,ph=(h-36)/4,sx=function(v){return l+(v+.6)/1.6*(r-l);};
+    var pc=document.createElement('canvas');pc.width=pc.height=6;var pctx=pc.getContext('2d');pctx.strokeStyle=C('--warn');pctx.lineWidth=1.3;pctx.beginPath();pctx.moveTo(0,6);pctx.lineTo(6,0);pctx.moveTo(-1,1);pctx.lineTo(1,-1);pctx.moveTo(5,7);pctx.lineTo(7,5);pctx.stroke();
+    var pat=ctx.createPattern(pc,'repeat');
+    sims.forEach(function(s,i){
+      var top=6+i*ph,base=top+ph-10,ha=hist(s.all),hs=hist(s.sel),mx=Math.max.apply(null,ha),bw=(r-l)/40;
+      ctx.strokeStyle=C('--line');ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l,base);ctx.lineTo(r,base);ctx.stroke();
+      ha.forEach(function(c,k){var hh=c/mx*(ph-18);ctx.fillStyle=C('--muted');ctx.globalAlpha=.35;ctx.fillRect(l+k*bw+.5,base-hh,bw-1,hh);});ctx.globalAlpha=1;
+      hs.forEach(function(c,k){if(!c)return;var hh=c/mx*(ph-18);ctx.fillStyle=pat;ctx.fillRect(l+k*bw+.5,base-hh,bw-1,hh);ctx.strokeStyle=C('--warn');ctx.lineWidth=1;ctx.strokeRect(l+k*bw+.5,base-hh,bw-1,hh);});
+      ctx.strokeStyle=C('--ink');ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(.2),top+2);ctx.lineTo(sx(.2),base);ctx.stroke();
+      if(s.sel.length){var ms=s.sel.reduce(function(a,b){return a+b;},0)/s.sel.length;ctx.setLineDash([4,3]);ctx.strokeStyle=C('--warn');ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(ms),top+2);ctx.lineTo(sx(ms),base);ctx.stroke();ctx.setLineDash([]);}
+      ctx.fillStyle=C('--ink');ctx.font='600 12px '+C('--f-mono');ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('n='+s.n,4,top+ph/2);
+    });
+    ctx.fillStyle=C('--muted');ctx.font=mono(10.5);ctx.textAlign='center';ctx.textBaseline='top';
+    [-.5,0,.2,.5,1].forEach(function(v){ctx.fillText(fmt(v,1),sx(v),h-26);});
+    ctx.font='12px '+C('--f-body');ctx.fillText('Estimation de β',(l+r)/2,h-13);
+  }
+  simulate();
+  $('#reS').addEventListener('click',function(){seed=Math.floor(Math.random()*1e6);simulate();draw();});
+  reg(draw,$('#wS'));
+})();
+
+/* ---------- G : évolution des modèles (SVG) ---------- */
+(function(){
+  var r=rngF(5),xs=[],ys=[];for(var x=8;x<=92;x+=7){xs.push(x);ys.push(40-16*Math.sin((x-8)/84*Math.PI*1.5)+gauss(r)*3);}
+  var n=xs.length,mx=0,my=0;xs.forEach(function(x,i){mx+=x/n;my+=ys[i]/n;});var sxy=0,sxx=0;xs.forEach(function(x,i){sxy+=(x-mx)*(ys[i]-my);sxx+=(x-mx)*(x-mx);});var b1=sxy/sxx,b0=my-b1*mx;
+  function dots(){return xs.map(function(x,i){return '<circle cx="'+x+'" cy="'+ys[i].toFixed(1)+'" r="2.4" style="fill:var(--muted)"/>';}).join('');}
+  var axis='<path d="M4 4 V66 H96" style="fill:none;stroke:var(--line);stroke-width:1"/>';
+  var curve='';for(var t=4;t<=96;t+=2){curve+=(t===4?'M':'L')+t+' '+(40-16*Math.sin((t-8)/84*Math.PI*1.5)).toFixed(1)+' ';}
+  var g1='<svg viewBox="0 0 100 70" role="img" aria-label="Droite">'+axis+dots()+'<path d="M4 '+(b0+b1*4).toFixed(1)+' L96 '+(b0+b1*96).toFixed(1)+'" style="fill:none;stroke:var(--accent);stroke-width:2.2"/></svg>';
+  var g2='<svg viewBox="0 0 100 70" role="img" aria-label="Courbe lissée">'+axis+dots()+'<path d="'+curve+'" style="fill:none;stroke:var(--accent);stroke-width:2.2"/></svg>';
+  var pin='',pout='',r2=rngF(9);
+  for(var k=0;k<26;k++){var px=8+r2()*86,py=6+r2()*58,dx=(px-52)/24,dy=(py-36)/18,inside=(dx*dx+dy*dy+.5*Math.sin(px/6))<1.1;var c='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="2.4" style="fill:var('+(inside?'--blue':'--green')+')"/>';if(inside)pin+=c;else pout+=c;}
+  var blob='M30 36 C30 16, 50 14, 60 20 C72 26, 80 22, 78 38 C76 52, 64 58, 50 54 C40 52, 30 50, 30 36 Z';
+  var g3='<svg viewBox="0 0 100 70" role="img" aria-label="Frontière complexe">'+axis+'<path d="'+blob+'" style="fill:var(--accent-soft);stroke:var(--accent);stroke-width:2"/>'+pin+pout+'</svg>';
+  $('#evo').innerHTML='<figure>'+g1+'<figcaption><b>GLM</b>Combinaison linéaire des β (régression linéaire, logistique)</figcaption></figure><figure>'+g2+'<figcaption><b>GAM</b>Fonction plus souple, lissage : relations non linéaires</figcaption></figure><figure>'+g3+'<figcaption><b>Réseaux neuronaux</b>Extension plus générale : relations beaucoup plus complexes</figcaption></figure>';
+})();
+
+/* ---------- QCM ---------- */
+(function(){
+  var Q=[
+    ['Les moindres carrés minimisent la somme des écarts entre valeurs observées et valeurs prédites.',0,'Faux : la somme des écarts <b>quadratiques</b>. Sans carré, les écarts positifs et négatifs s\'annulent.'],
+    ['Le résidu est l\'écart entre la valeur observée et la valeur prédite par le modèle.',1,'Vrai : e<sub>i</sub> = y<sub>i</sub> − μ<sub>i</sub>.'],
+    ['Le modèle de survie de Cox est un exemple de modèle pronostique.',1,'Vrai. Le modèle logistique, lui, est un exemple de modèle diagnostique non linéaire.'],
+    ['Si le modèle est linéaire, maximum de vraisemblance et moindres carrés fournissent les mêmes estimations des paramètres.',1,'Vrai.'],
+    ['Le maximum de vraisemblance et les moindres carrés ordinaires sont le même estimateur.',0,'Faux : ce sont des estimateurs différents, même s\'ils donnent les mêmes estimations quand le modèle est linéaire.'],
+    ['Pour un modèle non linéaire, on estime les paramètres par les moindres carrés ordinaires.',0,'Faux : les moindres carrés ne sont pas utilisables, on utilise le maximum de vraisemblance.'],
+    ['Pour les données de poids de naissance, la variance totale est largement expliquée par l\'âge gestationnel et le sexe.',0,'Faux : la part expliquée est faible, une grande partie est expliquée par la variance résiduelle.'],
+    ['Deep Blue d\'IBM a battu Garry Kasparov aux échecs en 1997.',1,'Vrai.'],
+    ['Une bonne traduction de « intelligence » en IA serait la capacité à extraire des informations à partir de données.',1,'Vrai : l\'IA n\'invente pas, l\'information vient des données.'],
+    ['Le perceptron monocouche contient une couche cachée.',0,'Faux : il n\'a pas de couche cachée. Pour chaque neurone de sortie : I poids + 1 biais + 1 fonction d\'activation.'],
+    ['Avec Heaviside, la sortie vaut 1 si la forme linéaire est supérieure ou égale au seuil θ.',1,'Vrai : signal booléen, 1 si ≥ θ, 0 sinon.'],
+    ['Avec 3 neurones d\'entrée et une activation marche, le séparateur est une droite.',0,'Faux : c\'est un plan (dimension 3). Une droite pour 2 entrées, un hyperplan au-delà de 3.'],
+    ['La droite z = 0 a pour pente −w₁/w₂ et pour ordonnée à l\'origine (θ − w₀)/w₂.',1,'Vrai.'],
+    ['La fonction ReLU renvoie des valeurs dans [0 ; 1].',0,'Faux : ReLU va de R vers [0 ; +∞[. C\'est la sigmoïde qui va dans [0 ; 1], la tangente hyperbolique dans [−1 ; 1].'],
+    ['La softmax est une extension de la sigmoïde, continuellement dérivable.',1,'Vrai, d\'où son intérêt pour l\'entraînement des réseaux.'],
+    ['Dans un réseau récurrent, un neurone de la couche J peut transmettre à des neurones de la couche J−1.',1,'Vrai : ce sont les boucles d\'activation (aussi vers la même couche).'],
+    ['La rétropropagation du gradient sert à corriger les poids des réseaux récurrents.',0,'Faux : rétropropagation du gradient pour les réseaux à propagation avant, rétropropagation à travers le temps pour les récurrents.'],
+    ['L\'apprentissage d\'un réseau vise à maximiser la vraisemblance des données de l\'échantillon d\'apprentissage.',1,'Vrai.'],
+    ['Le rappel correspond à la sensibilité, et la précision à la VPP.',1,'Vrai : rappel = VP/(VP+FN), précision = VP/(VP+FP).'],
+    ['Les performances d\'un réseau de classification s\'évaluent sur l\'échantillon d\'apprentissage.',0,'Faux : sur l\'échantillon test. Sur l\'échantillon d\'apprentissage, il paraîtrait trop bon.'],
+    ['Pour les omics, le nombre de variables est très supérieur au nombre d\'observations (m ≫ n).',1,'Vrai.'],
+    ['L\'exome représente 1 % du génome, soit 3 × 10⁷ paires de bases.',1,'Vrai. Génome entier : environ 3 milliards de paires de bases.'],
+    ['La transcriptomique analyse le niveau d\'activité d\'environ 22 000 gènes.',1,'Vrai.'],
+    ['Le biais d\'optimisme est d\'autant plus important que l\'étude d\'identification est de grande taille.',0,'Faux : il est d\'autant plus important que l\'étude est de <b>petite</b> taille.'],
+    ['Sur un très grand nombre d\'études, les estimations du paramètre sont en moyenne biaisées.',0,'Faux : en moyenne, elles sont non biaisées. C\'est la sélection des seuls résultats significatifs qui crée le biais.'],
+    ['Les méthodes LASSO et RIDGE rétrécissent les estimations des paramètres β.',1,'Vrai : ce sont des méthodes pénalisées contre le biais d\'optimisme.'],
+    ['Les GAM remplacent la combinaison linéaire des GLM par une fonction plus souple.',1,'Vrai.'],
+    ['Dans un réseau, l\'avant-dernière couche joue un rôle équivalent à la combinaison linéaire des GLM.',1,'Vrai.']
+  ];
+  var list=$('#qList'),ans={};
+  function score(){var k=Object.keys(ans),g=k.filter(function(i){return ans[i];}).length;$('#qScore').textContent='Score : '+g+' / '+k.length+'  ('+Q.length+' questions)';}
+  function build(){list.innerHTML='';ans={};
+    Q.forEach(function(q,i){var d=document.createElement('div');d.className='qi';
+      d.innerHTML='<p class="st"><b>'+(i+1)+'.</b>'+q[0]+'</p><div class="vf"><button class="b" data-v="1">Vrai</button><button class="b" data-v="0">Faux</button></div><div class="fb" hidden></div>';
+      [].forEach.call(d.querySelectorAll('button'),function(b){b.addEventListener('click',function(){if(i in ans)return;var ok=(+b.dataset.v)===q[1];ans[i]=ok;b.setAttribute('aria-pressed','true');var fb=d.querySelector('.fb');fb.hidden=false;fb.className='fb '+(ok?'good':'bad');fb.innerHTML=(ok?'<b>Bien vu.</b> ':'<b>Raté.</b> ')+q[2];score();});});
+      list.appendChild(d);});
+    score();}
+  $('#qReset').addEventListener('click',build);build();
+})();
+
+/* ---------- Navigation ---------- */
+(function(){
+  var chips=[].slice.call(document.querySelectorAll('.chip')),nav=$('#chips'),secs=chips.map(function(c){return document.querySelector(c.getAttribute('href'));});
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;secs.forEach(function(s,i){if(s&&s.offsetTop<=y)cur=i;});
+    chips.forEach(function(c,i){c.classList.toggle('on',i===cur);});
+    var c=chips[cur];if(c){var target=c.offsetLeft-nav.clientWidth/2+c.clientWidth/2;if(Math.abs(nav.scrollLeft-target)>20)nav.scrollLeft=target;}
+    var max=document.documentElement.scrollHeight-window.innerHeight;$('#prog').style.width=(max>0?Math.min(100,window.scrollY/max*100):0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+})();
+</script>
+
+</body>
+</html>
